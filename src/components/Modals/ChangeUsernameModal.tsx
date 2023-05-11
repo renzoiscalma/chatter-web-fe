@@ -1,5 +1,6 @@
 import { MutationTuple, useMutation } from "@apollo/client";
-import { Button } from "@mui/material";
+import CheckIcon from "@mui/icons-material/Check";
+import { Button, CircularProgress } from "@mui/material";
 import { SxProps, useTheme } from "@mui/material/styles";
 import { Box } from "@mui/system";
 import { KeyboardEvent, useContext, useEffect, useState } from "react";
@@ -42,16 +43,48 @@ const ChangeUsernameModal = ({
     flexGrow: 1,
     color: theme.common.text.accept,
     fontWeight: "bold",
+    "&.Mui-disabled": {
+      color: theme.common.text.accept,
+      opacity: 0.6,
+      fontWeight: "bold",
+    },
   };
 
   const cancelButtonSx: SxProps = {
     flexGrow: 1,
     color: theme.common.text.decline,
     fontWeight: "bold",
+    "&.Mui-disabled": {
+      color: theme.common.text.decline,
+      opacity: 0.6,
+      fontWeight: "bold",
+    },
   };
 
   const buttonContainer: SxProps = {
     display: "flex",
+  };
+
+  const loadingSx: SxProps = {
+    width: "24px !important",
+    height: "24px !important",
+    position: "absolute",
+    left: "38px",
+  };
+
+  const successSx: SxProps = {
+    width: "24px !important",
+    height: "24px !important",
+    position: "absolute",
+    left: "38px",
+  };
+
+  const closeHandler = (): void => {
+    usernameValidationMutationProps.reset();
+    changeUsernameMutationProps.reset();
+    setUsername(userContext.username);
+    setError(false);
+    onClose();
   };
 
   const submitHandler = (): void => {
@@ -97,12 +130,14 @@ const ChangeUsernameModal = ({
       changeUsernameMutationProps.data?.changeUsername.success
     ) {
       userContext.setUsername(username);
-      onClose();
+      setTimeout(() => {
+        closeHandler();
+      }, 1000);
     }
   }, [changeUsernameMutationProps.data]);
 
   return (
-    <ModalBase open={opened} onClose={onClose} header="Input New Username">
+    <ModalBase open={opened} onClose={closeHandler} header="Input New Username">
       <OutlinedField
         placeholder={"Username"}
         defaultValue={userContext.username}
@@ -115,10 +150,24 @@ const ChangeUsernameModal = ({
         disabled={usernameValidationMutationProps.loading}
       />
       <Box sx={buttonContainer}>
-        <Button sx={confirmButtonSx} onClick={submitHandler}>
+        <Button
+          sx={confirmButtonSx}
+          onClick={submitHandler}
+          disabled={usernameValidationMutationProps.loading}
+        >
+          {usernameValidationMutationProps.loading && (
+            <CircularProgress sx={loadingSx} />
+          )}
+          {changeUsernameMutationProps.data?.changeUsername.success && (
+            <CheckIcon sx={successSx} />
+          )}
           SUBMIT
         </Button>
-        <Button sx={cancelButtonSx} onClick={onClose}>
+        <Button
+          sx={cancelButtonSx}
+          onClick={closeHandler}
+          disabled={usernameValidationMutationProps.loading}
+        >
           CANCEL
         </Button>
       </Box>
