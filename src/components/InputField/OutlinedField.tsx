@@ -20,6 +20,9 @@ const OutlinedField = (props: OutlinedFieldProps): JSX.Element => {
 
   const textFieldSx: SxProps = {
     margin: "18px 0",
+    "& input.Mui-disabled": {
+      WebkitTextFillColor: theme.common.text.secondary,
+    },
     ".MuiInputLabel-outlined": {
       color: theme.common.text.secondary + " !important",
     },
