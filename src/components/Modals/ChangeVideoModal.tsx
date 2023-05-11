@@ -32,12 +32,22 @@ function ChangeVideoModal({
     flexGrow: 1,
     color: theme.common.text.accept,
     fontWeight: "bold",
+    "&.Mui-disabled": {
+      color: theme.common.text.accept,
+      opacity: 0.6,
+      fontWeight: "bold",
+    },
   };
 
   const cancelButtonSx: SxProps = {
     flexGrow: 1,
     color: theme.common.text.decline,
     fontWeight: "bold",
+    "&.Mui-disabled": {
+      color: theme.common.text.decline,
+      opacity: 0.6,
+      fontWeight: "bold",
+    },
   };
 
   const buttonContainer: SxProps = {
