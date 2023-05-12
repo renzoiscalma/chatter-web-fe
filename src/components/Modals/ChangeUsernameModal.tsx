@@ -82,7 +82,6 @@ const ChangeUsernameModal = ({
   const closeHandler = (): void => {
     usernameValidationMutationProps.reset();
     changeUsernameMutationProps.reset();
-    setUsername(userContext.username);
     setError(false);
     onClose();
   };
