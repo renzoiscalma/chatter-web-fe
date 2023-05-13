@@ -6,6 +6,7 @@ import {
   InputAdornment,
   InputLabel,
   OutlinedInput,
+  PopperProps,
   Tooltip,
 } from "@mui/material";
 import { SxProps, useTheme } from "@mui/material/styles";
@@ -27,6 +28,7 @@ const ShareLobbyModal = ({
   const inputFieldRef = useRef(null);
 
   const textFieldSx: SxProps = {
+    marginTop: "18px",
     marginBottom: "24px",
     ".MuiInputLabel-outlined": {
       color: theme.common.text.secondary + " !important",
@@ -46,6 +48,7 @@ const ShareLobbyModal = ({
   };
 
   const inputLabelSx: SxProps = {
+    marginTop: "18px",
     color: theme.common.text.secondary,
     "&.Mui-focused": {
       color: theme.common.text.secondary,
@@ -71,13 +74,28 @@ const ShareLobbyModal = ({
     color: theme.common.text.secondary,
   };
 
+  const popperProps: Partial<PopperProps> = {
+    modifiers: [
+      {
+        name: "offset",
+        options: {
+          offset: [0, -20],
+        },
+      },
+    ],
+  };
+
   const tooltipTitle = (): string =>
     copiedLobbyUrl ? "Copied!" : "Click to copy url";
   const headerStr = "Share this URL to your friends!";
   return (
     <>
       <ModalBase open={opened} onClose={handleCloseModal} header={headerStr}>
-        <Tooltip title={tooltipTitle()} placement="top">
+        <Tooltip
+          title={tooltipTitle()}
+          placement="top"
+          PopperProps={popperProps}
+        >
           <FormControl variant="outlined">
             <InputLabel htmlFor="copy-url" sx={inputLabelSx}>
               Copy Url
