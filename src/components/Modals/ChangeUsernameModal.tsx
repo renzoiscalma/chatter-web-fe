@@ -140,7 +140,12 @@ const ChangeUsernameModal = ({
   }, [changeUsernameMutationProps.data]);
 
   return (
-    <ModalBase open={opened} onClose={closeHandler} header="Input New Username">
+    <ModalBase
+      open={opened}
+      onClose={closeHandler}
+      header="Input New Username"
+      hasCloseButton
+    >
       <OutlinedField
         placeholder={"Username"}
         defaultValue={userContext.username}

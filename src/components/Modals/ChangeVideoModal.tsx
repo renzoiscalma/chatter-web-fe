@@ -97,6 +97,7 @@ function ChangeVideoModal({
       open={opened}
       onClose={onCloseHandler}
       header="Input New Video Url"
+      hasCloseButton
     >
       <OutlinedField
         error={values.error}

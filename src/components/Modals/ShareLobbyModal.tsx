@@ -85,14 +85,17 @@ const ShareLobbyModal = ({
     ],
   };
 
-  // TODO Add close buttons
-
   const tooltipTitle = (): string =>
     copiedLobbyUrl ? "Copied!" : "Click to copy url";
   const headerStr = "Share this URL to your friends!";
   return (
     <>
-      <ModalBase open={opened} onClose={handleCloseModal} header={headerStr}>
+      <ModalBase
+        open={opened}
+        onClose={handleCloseModal}
+        header={headerStr}
+        hasCloseButton
+      >
         <Tooltip
           title={tooltipTitle()}
           placement="top"
