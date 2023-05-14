@@ -79,11 +79,13 @@ const ShareLobbyModal = ({
       {
         name: "offset",
         options: {
-          offset: [0, -20],
+          offset: [0, -40],
         },
       },
     ],
   };
+
+  // TODO Add close buttons
 
   const tooltipTitle = (): string =>
     copiedLobbyUrl ? "Copied!" : "Click to copy url";
