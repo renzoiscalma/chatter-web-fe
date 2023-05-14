@@ -94,7 +94,7 @@ const ChangeUsernameModal = ({
           username: username,
         },
       });
-    }, 500);
+    }, 250);
     setLoading(true);
   };
 
@@ -135,7 +135,6 @@ const ChangeUsernameModal = ({
       changeUsernameMutationProps.data?.changeUsername.success
     ) {
       userContext.setUsername(username);
-      // closeHandler();
       setLoading(false);
     }
   }, [changeUsernameMutationProps.data]);
