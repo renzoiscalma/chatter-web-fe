@@ -1,10 +1,18 @@
-import { Box, Modal, SxProps, Typography, useTheme } from "@mui/material";
-
+import CloseIcon from "@mui/icons-material/Close";
+import {
+  Box,
+  IconButton,
+  Modal,
+  SxProps,
+  Typography,
+  useTheme,
+} from "@mui/material";
 interface ModalBaseProps {
   open: boolean;
-  onClose(): void;
+  onClose(_?: object, reason?: string): void;
   children: React.ReactNode;
   header: string;
+  hasCloseButton?: boolean;
 }
 
 const ModalBase = ({
@@ -12,6 +20,7 @@ const ModalBase = ({
   onClose,
   children,
   header,
+  hasCloseButton,
 }: ModalBaseProps): JSX.Element => {
   const theme = useTheme();
 
@@ -28,11 +37,30 @@ const ModalBase = ({
     boxShadow: 24,
     px: 4,
     py: 2,
+    outline: 0,
+  };
+
+  const closeButtonContainerSx: SxProps = {
+    position: "absolute",
+    top: "5px",
+    right: "8px",
+  };
+
+  const closeButtonSx: SxProps = {
+    color: theme.common.text.secondary,
+    width: "20px",
   };
 
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={style}>
+        {hasCloseButton && (
+          <Box sx={closeButtonContainerSx}>
+            <IconButton aria-label="Example" onClick={onClose}>
+              <CloseIcon sx={closeButtonSx} />
+            </IconButton>
+          </Box>
+        )}
         <Typography
           id="modal-modal-title"
           variant="h6"
