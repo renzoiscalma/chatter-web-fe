@@ -1,5 +1,6 @@
 import { MutationTuple, useMutation } from "@apollo/client";
-import { TextField } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import { IconButton, TextField } from "@mui/material";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Modal from "@mui/material/Modal";
@@ -142,9 +143,27 @@ const CreateLobbyModal = ({ opened, handleCloseModal }: LobbyModalProps) => {
     },
   };
 
+  const closeButtonContainerSx: SxProps = {
+    position: "absolute",
+    top: "5px",
+    right: "8px",
+  };
+
+  const closeButtonSx: SxProps = {
+    color: theme.common.text.secondary,
+    width: "20px",
+  };
+
   return (
     <Modal open={opened} onClose={onCloseHandler}>
       <Box sx={style}>
+        {userContext.lobbyId && userContext.lobbyId !== "NONE" && (
+          <Box sx={closeButtonContainerSx}>
+            <IconButton aria-label="Example" onClick={handleCloseModal}>
+              <CloseIcon sx={closeButtonSx} />
+            </IconButton>
+          </Box>
+        )}
         <Typography
           id="modal-modal-title"
           variant="h6"
