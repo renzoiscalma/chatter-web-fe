@@ -57,12 +57,13 @@ function Navbar(): JSX.Element {
   };
 
   useEffect(() => {
-    if (userContext.lobbyId === NONE_LOBBY_ID) {
+    console.log(userContext.lobbyId);
+    if (!userContext.lobbyId || userContext.lobbyId === NONE_LOBBY_ID) {
       openCreateLobbyModal();
     } else {
       setCreateLobbyModal(false);
     }
-  }, [userContext]);
+  }, [userContext.lobbyId]);
 
   const appBarStyle: SxProps = {
     bgcolor: theme.appBar.bgColor,
@@ -115,6 +116,9 @@ function Navbar(): JSX.Element {
       </Container>
       <CreateLobbyModal
         opened={createLobbyModal}
+        closable={Boolean(
+          userContext.lobbyId !== NONE_LOBBY_ID && userContext.lobbyId
+        )}
         handleCloseModal={() => {
           setCreateLobbyModal(false);
         }}

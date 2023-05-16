@@ -4,7 +4,6 @@ import { KeyboardEvent, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UsrContxt } from "../../App";
 import { ADD_USER_TO_LOBBY, CREATE_LOBBY } from "../../queries/App";
-import { NONE_LOBBY_ID } from "../../util/constants";
 import { validateYtUrl } from "../../util/helpers";
 import Lobby from "../Chatter/interface/Lobby";
 import GenericResponse from "../Chatter/interface/response/GenericResponse";
@@ -13,6 +12,7 @@ import ModalBase from "./ModalBase";
 
 interface LobbyModalProps {
   opened: boolean;
+  closable: boolean;
   handleCloseModal(): void;
 }
 interface InputState {
@@ -20,7 +20,11 @@ interface InputState {
   error: boolean;
 }
 
-const CreateLobbyModal = ({ opened, handleCloseModal }: LobbyModalProps) => {
+const CreateLobbyModal = ({
+  opened,
+  handleCloseModal,
+  closable,
+}: LobbyModalProps) => {
   const userContext = useContext(UsrContxt);
   const navigate = useNavigate();
 
@@ -91,10 +95,7 @@ const CreateLobbyModal = ({ opened, handleCloseModal }: LobbyModalProps) => {
   };
 
   const onCloseHandler = (_: any, reason: string) => {
-    if (
-      (reason !== "backdropClick" && reason !== "escapeKeyDown") ||
-      userContext.lobbyId !== NONE_LOBBY_ID
-    )
+    if ((reason !== "backdropClick" && reason !== "escapeKeyDown") || closable)
       handleCloseModal();
   };
 
@@ -103,9 +104,7 @@ const CreateLobbyModal = ({ opened, handleCloseModal }: LobbyModalProps) => {
       open={opened}
       onClose={onCloseHandler}
       header="Create your room for watching together!"
-      hasCloseButton={Boolean(
-        userContext.lobbyId && userContext.lobbyId !== "NONE"
-      )}
+      hasCloseButton={closable}
     >
       <OutlinedField
         placeholder={"https://www.youtube.com/watch?v=4WXs3sKu41I"}
