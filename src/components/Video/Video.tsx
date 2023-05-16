@@ -152,7 +152,6 @@ function Video(): JSX.Element {
 
   useEffect(() => {
     if (videoChanges?.data?.videoStatusChanged) {
-      console.log(videoChanges?.data?.videoStatusChanged, "update from BE");
       setUpdateFromBE(true);
       const { currTime, status, url } =
         videoChanges.data.videoStatusChanged.data;
@@ -200,7 +199,6 @@ function Video(): JSX.Element {
 
   useEffect(() => {
     if (videoStatusQueryRes.data) {
-      console.log(videoStatusQueryRes.data);
       const { data } = videoStatusQueryRes.data.getVideoStatusOnLobby;
 
       if (data.currTime > 0) {
@@ -237,7 +235,6 @@ function Video(): JSX.Element {
   }, [userContext.videoUrl]);
 
   useEffect(() => {
-    console.log(userContext.lobbyId);
     if (userContext.lobbyId && userContext.lobbyId !== "NONE") {
       videoStatus({
         variables: {
