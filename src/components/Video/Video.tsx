@@ -1,9 +1,9 @@
 import {
+  LazyQueryResultTuple,
   MutationTuple,
-  QueryResult,
   SubscriptionResult,
+  useLazyQuery,
   useMutation,
-  useQuery,
   useSubscription,
 } from "@apollo/client";
 import Box from "@mui/material/Box";
@@ -75,14 +75,10 @@ function Video(): JSX.Element {
     { statusInput: UpdateVideoStatusRequest }
   > = useMutation(UPDATE_VIDEO);
 
-  const videoStatus: QueryResult<
+  const [videoStatus, videoStatusQueryRes]: LazyQueryResultTuple<
     { getVideoStatusOnLobby: VideoStatusTopicResponse },
     { lobbyId: string }
-  > = useQuery(GET_VIDEO_STATUS, {
-    variables: {
-      lobbyId: userContext.lobbyId,
-    },
-  });
+  > = useLazyQuery(GET_VIDEO_STATUS);
 
   const videoContainerStyle: SxProps = {
     display: "flex",
@@ -170,7 +166,7 @@ function Video(): JSX.Element {
       if (
         currTime > 0 &&
         playerRef.current &&
-        currTime - +playerRef.current.getCurrentTime().toFixed(0) != 0 // do seek when player difference from BE is not 0
+        currTime - +playerRef.current.getCurrentTime().toFixed(0) !== 0 // do seek when player difference from BE is not 0
       ) {
         playerRef.current?.seekTo(currTime);
       }
@@ -203,8 +199,9 @@ function Video(): JSX.Element {
   }, [userContext]);
 
   useEffect(() => {
-    if (videoStatus.data) {
-      const { data } = videoStatus.data.getVideoStatusOnLobby;
+    if (videoStatusQueryRes.data) {
+      console.log(videoStatusQueryRes.data);
+      const { data } = videoStatusQueryRes.data.getVideoStatusOnLobby;
 
       if (data.currTime > 0) {
         playerRef.current?.seekTo(data.currTime);
@@ -220,7 +217,7 @@ function Video(): JSX.Element {
         loop: false,
       }));
     }
-  }, [videoStatus.data]);
+  }, [videoStatusQueryRes.data]);
 
   useEffect(() => {
     setPlayerProps((values) => ({
@@ -238,6 +235,17 @@ function Video(): JSX.Element {
         url: userContext.videoUrl,
       }));
   }, [userContext.videoUrl]);
+
+  useEffect(() => {
+    console.log(userContext.lobbyId);
+    if (userContext.lobbyId && userContext.lobbyId !== "NONE") {
+      videoStatus({
+        variables: {
+          lobbyId: userContext.lobbyId,
+        },
+      });
+    }
+  }, [userContext.lobbyId]);
 
   return (
     <Box sx={videoContainerStyle} ref={ytContainer}>
