@@ -57,8 +57,7 @@ function Navbar(): JSX.Element {
   };
 
   useEffect(() => {
-    console.log(userContext.lobbyId);
-    if (!userContext.lobbyId || userContext.lobbyId === NONE_LOBBY_ID) {
+    if (userContext.lobbyId === NONE_LOBBY_ID) {
       openCreateLobbyModal();
     } else {
       setCreateLobbyModal(false);

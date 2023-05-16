@@ -125,6 +125,8 @@ function App(): JSX.Element {
           lobbyId: lobbyId,
         },
       });
+    } else {
+      setLobbyId(NONE_LOBBY_ID); // needed to control initial createlobbymodal to pop up
     }
   }, [searchParams]);
 

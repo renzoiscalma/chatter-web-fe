@@ -251,17 +251,13 @@ function Chatter(props: ChatterProps) {
   }, [userContext.lobbyId, getCurrUsers, getExistingMsg]);
 
   useEffect(() => {
-    if (
-      !initializedMessage && // TODO what is this for
-      getExistingMsgQueryRes.data?.getMessagesOnLobby?.success
-    ) {
-      setInitializedMessage(true);
+    if (getExistingMsgQueryRes.data?.getMessagesOnLobby?.success) {
       dispatchMessage({
         type: "FETCH_ALL",
         payload: getExistingMsgQueryRes.data.getMessagesOnLobby.data,
       });
     }
-  }, [initializedMessage, getExistingMsgQueryRes.data]);
+  }, [getExistingMsgQueryRes.data]);
 
   useEffect(() => {
     if (sendMessageProperties?.data) {
