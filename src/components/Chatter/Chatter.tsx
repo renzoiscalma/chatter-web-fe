@@ -1,8 +1,8 @@
 import {
-  QueryResult,
+  LazyQueryResultTuple,
   SubscriptionResult,
+  useLazyQuery,
   useMutation,
-  useQuery,
   useSubscription,
 } from "@apollo/client";
 import { Divider, SxProps } from "@mui/material";
@@ -124,12 +124,12 @@ function Chatter(props: ChatterProps) {
   const bottomDivRef = useRef<HTMLDivElement>(null);
   const theme = useTheme();
   // TODO QUERY RESULT ADD PROPER TYPES
-  const existingMessages: QueryResult<any, any> = useQuery(
-    GET_MESSAGES_ON_LOBBY,
-    { variables: { lobbyId: userContext.lobbyId } }
-  );
+  const [getExistingMsg, getExistingMsgQueryRes]: LazyQueryResultTuple<
+    any,
+    any
+  > = useLazyQuery(GET_MESSAGES_ON_LOBBY);
 
-  const getCurrentUsersOnLobby: QueryResult<
+  const [getCurrUsers, getCurrUsersQueryRes]: LazyQueryResultTuple<
     {
       getCurrentUsersOnLobby: GenericResponse & {
         data: Array<{ username: string; id: string }>;
@@ -138,9 +138,7 @@ function Chatter(props: ChatterProps) {
     {
       lobbyId: string;
     }
-  > = useQuery(GET_CURR_USERS_ON_LOBBY, {
-    variables: { lobbyId: userContext.lobbyId },
-  });
+  > = useLazyQuery(GET_CURR_USERS_ON_LOBBY);
 
   // unless yung state ng message is contained to itself
   const [sendMessage, sendMessageProperties] = useMutation(SEND_MESSAGE);
@@ -242,17 +240,28 @@ function Chatter(props: ChatterProps) {
   }, [messages, showLobbyUsers, props.chatHidden]);
 
   useEffect(() => {
+    if (userContext.lobbyId && userContext.lobbyId !== "NONE") {
+      getCurrUsers({
+        variables: { lobbyId: userContext.lobbyId },
+      });
+      getExistingMsg({
+        variables: { lobbyId: userContext.lobbyId },
+      });
+    }
+  }, [userContext.lobbyId, getCurrUsers, getExistingMsg]);
+
+  useEffect(() => {
     if (
-      !initializedMessage &&
-      existingMessages.data?.getMessagesOnLobby?.success
+      !initializedMessage && // TODO what is this for
+      getExistingMsgQueryRes.data?.getMessagesOnLobby?.success
     ) {
       setInitializedMessage(true);
       dispatchMessage({
         type: "FETCH_ALL",
-        payload: existingMessages.data.getMessagesOnLobby.data,
+        payload: getExistingMsgQueryRes.data.getMessagesOnLobby.data,
       });
     }
-  }, [initializedMessage, existingMessages.data]);
+  }, [initializedMessage, getExistingMsgQueryRes.data]);
 
   useEffect(() => {
     if (sendMessageProperties?.data) {
@@ -269,11 +278,11 @@ function Chatter(props: ChatterProps) {
   }, [sendMessageProperties.data, sendMessageProperties?.error]);
 
   useEffect(() => {
-    if (getCurrentUsersOnLobby?.data) {
-      let { data } = getCurrentUsersOnLobby.data.getCurrentUsersOnLobby;
+    if (getCurrUsersQueryRes?.data) {
+      let { data } = getCurrUsersQueryRes.data.getCurrentUsersOnLobby;
       setCurrentLobbyUsers(data);
     }
-  }, [getCurrentUsersOnLobby.data]);
+  }, [getCurrUsersQueryRes.data]);
 
   useEffect(() => {
     // todo add types
@@ -302,10 +311,12 @@ function Chatter(props: ChatterProps) {
 
       let newUser = data.filter(
         (lobbyUser) =>
-          !currentLobbyUsers.some((cLobbyUser) => lobbyUser.id == cLobbyUser.id)
+          !currentLobbyUsers.some(
+            (cLobbyUser) => lobbyUser.id === cLobbyUser.id
+          )
       );
       let userLeft = currentLobbyUsers.filter(
-        (cLobbyUser) => !data.some((dataUser) => dataUser.id == cLobbyUser.id)
+        (cLobbyUser) => !data.some((dataUser) => dataUser.id === cLobbyUser.id)
       );
 
       setCurrentLobbyUsers(data);
@@ -320,7 +331,7 @@ function Chatter(props: ChatterProps) {
 
   useEffect(() => {
     if (videoChanges.data?.videoStatusChanged) {
-      let { changedBy, currTime, status, url } =
+      let { changedBy, status, url } =
         videoChanges.data?.videoStatusChanged.data;
       let payload = {
         message: "",
@@ -331,13 +342,13 @@ function Chatter(props: ChatterProps) {
       if (url) {
         payload.message = `${changedBy} has changed the video`;
       }
-      if (status == 1) {
+      if (status === 1) {
         payload.message = `${changedBy} has played the video`;
       }
-      if (status == 2) {
+      if (status === 2) {
         payload.message = `${changedBy} has paused the video`;
       }
-      if (status == 3) {
+      if (status === 3) {
         payload.message = `${changedBy} is buffering...`;
       }
       dispatchMessage({

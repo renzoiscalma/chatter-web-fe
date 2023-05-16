@@ -45,6 +45,7 @@ function App(): JSX.Element {
   const [darkMode, setDarkMode] = useState<boolean>(true);
   const [userCookie, setUserCookie] = useCookies(["user-cookie"]);
   const [searchParams, setSearchParams] = useSearchParams();
+
   // TODO ADD PROPER TYPES
   const [newUserMutation, newUserMutationRes]: MutationTuple<
     { addNewUser: AddNewUserResponse },
@@ -114,7 +115,9 @@ function App(): JSX.Element {
       setUsername(username);
       setUserId(userId);
     }
+  }, [userCookie]);
 
+  useEffect(() => {
     const lobbyId = searchParams.get("lobbyId") || "";
     if (lobbyId) {
       isLobbyExisting({
@@ -122,10 +125,8 @@ function App(): JSX.Element {
           lobbyId: lobbyId,
         },
       });
-    } else {
-      setLobbyId(NONE_LOBBY_ID);
     }
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     if (lobbyId && lobbyId !== NONE_LOBBY_ID)
