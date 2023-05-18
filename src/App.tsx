@@ -99,6 +99,7 @@ function App(): JSX.Element {
   };
 
   const handleBeforeUnload = (): void => {
+    console.log("???");
     removeUserToLobbyMutation({
       variables: {
         lobbyId,
@@ -176,10 +177,10 @@ function App(): JSX.Element {
           userId,
         },
       });
+      window.addEventListener("beforeunload", handleBeforeUnload);
+      return () =>
+        window.removeEventListener("beforeUnload", handleBeforeUnload);
     }
-    if (lobbyId === "NONE") return;
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeUnload", handleBeforeUnload);
   }, [isLobbyExistingRes, lobbyId, userId]);
 
   return (
