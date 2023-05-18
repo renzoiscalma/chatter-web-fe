@@ -203,7 +203,6 @@ function Chatter(props: ChatterProps) {
     initialMessages
   );
 
-  const [initializedMessage, setInitializedMessage] = useState<boolean>(false);
   const [initializedLobbyList, setInitializedLobbyList] =
     useState<boolean>(false);
   const [showLobbyUsers, setShowLobbyUsers] = useState<boolean>(false);
@@ -231,13 +230,18 @@ function Chatter(props: ChatterProps) {
   };
 
   useEffect(() => {
-    if (!props.chatHidden && !showLobbyUsers) {
-      // wait for the transition to end
+    if (!props.chatHidden) {
       setTimeout(() => {
         bottomDivRef?.current?.scrollIntoView();
       }, 750);
     }
-  }, [messages, showLobbyUsers, props.chatHidden]);
+  }, [props.chatHidden]);
+
+  useEffect(() => {
+    if (props.chatHidden) return;
+    bottomDivRef?.current?.scrollIntoView();
+    // eslint-disable-next-line
+  }, [messages, showLobbyUsers]); // have to disable next line because i don't want to call this useEffect when chatHidden hcanges
 
   useEffect(() => {
     if (userContext.lobbyId && userContext.lobbyId !== "NONE") {
@@ -323,7 +327,12 @@ function Chatter(props: ChatterProps) {
         dispatchMessageLeftLobby(userLeft[0].username);
       }
     }
-  }, [userListChangedSub]);
+  }, [
+    userListChangedSub,
+    currentLobbyUsers,
+    initializedLobbyList,
+    userContext.username,
+  ]);
 
   useEffect(() => {
     if (videoChanges.data?.videoStatusChanged) {
@@ -334,6 +343,7 @@ function Chatter(props: ChatterProps) {
         sender: "Admin",
         to: "Everyone",
         sendType: -1,
+        localDateSent: new Date().getTime() + "",
       };
       if (url) {
         payload.message = `${changedBy} has changed the video`;
@@ -363,6 +373,7 @@ function Chatter(props: ChatterProps) {
           sender: "Admin",
           to: "Everyone",
           sendType: -1,
+          localDateSent: new Date().getTime() + "",
         },
       ],
     });
@@ -377,6 +388,7 @@ function Chatter(props: ChatterProps) {
           sender: "Admin",
           to: "Everyone",
           sendType: -1,
+          localDateSent: new Date().getTime() + "",
         },
       ],
     });
