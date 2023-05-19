@@ -12,6 +12,7 @@ import Typography from "@mui/material/Typography";
 import { SxProps, useTheme } from "@mui/material/styles";
 import { MouseEvent, useContext, useEffect, useState } from "react";
 import { UsrContxt } from "../../App";
+import logo from "../../assets/chatter.png";
 import { NONE_LOBBY_ID } from "../../util/constants";
 import ChangeUsernameModal from "../Modals/ChangeUsernameModal";
 import ChangeVideoModal from "../Modals/ChangeVideoModal";
@@ -73,11 +74,17 @@ function Navbar(): JSX.Element {
     padding: "0 10px",
   };
 
+  const logoSx: SxProps = {
+    width: 95,
+  };
+
   return (
     <AppBar position="static" sx={appBarStyle}>
       <Container sx={containerSx} maxWidth={false}>
         <Toolbar disableGutters>
-          <Typography sx={{ flexGrow: 1 }}>chatter</Typography>
+          <Typography sx={{ flexGrow: 1 }}>
+            <Box component="img" sx={logoSx} alt="chatter" src={logo} />
+          </Typography>
           <IconButton
             size="large"
             onClick={openCreateLobbyModal}
