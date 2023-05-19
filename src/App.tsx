@@ -99,7 +99,6 @@ function App(): JSX.Element {
   };
 
   const handleBeforeUnload = (): void => {
-    console.log("???");
     removeUserToLobbyMutation({
       variables: {
         lobbyId,
