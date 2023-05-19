@@ -1,5 +1,7 @@
 import {
+  FetchResult,
   LazyQueryResultTuple,
+  MutationTuple,
   SubscriptionResult,
   useLazyQuery,
   useMutation,
@@ -25,6 +27,7 @@ import Sender from "./Sender";
 import UserList from "./UserList";
 import Message from "./interface/Message";
 import SendStatus from "./interface/SendStatus";
+import AddMessageResponse from "./interface/response/AddMessageResponse";
 import GenericResponse from "./interface/response/GenericResponse";
 import NewMessageSubResponse from "./interface/response/NewMessageSubResponse";
 import UsernameChangedSubResponse from "./interface/response/UsernameChangedSubResponse";
@@ -74,30 +77,26 @@ function sendMessageReducer(
           sendType: 1,
         };
       });
-    case SendStatus.FAILED:
-      return {} as Message[];
     case SendStatus.SENDING: {
-      let { to, sender, message, localDateSent } = action.payload;
+      let { to, sender, message, localDateSent, callback } = action.payload;
       messages.push(action.payload);
-      action.payload.callback({
-        variables: {
-          addMessageInput: {
-            to,
-            from: sender,
-            message,
-            localDateSent,
-          },
-        },
+      callback({
+        to,
+        from: sender,
+        message,
+        localDateSent,
       });
       return [...messages];
     }
+    case SendStatus.FAILED:
     case SendStatus.SENT: {
       let { localDateSent, sender } = action.payload;
-      let targetMessage = messages.filter(
-        (message) =>
-          message.localDateSent === localDateSent && message.sender === sender
-      );
-      targetMessage[0].sendStatus = SendStatus.SENT;
+      messages
+        .filter(
+          (message) =>
+            message.localDateSent === localDateSent && message.sender === sender
+        )
+        .forEach((message) => (message.sendStatus = action.type));
       return [...messages];
     }
     case "NEW_MESSAGE": {
@@ -141,7 +140,10 @@ function Chatter(props: ChatterProps) {
   > = useLazyQuery(GET_CURR_USERS_ON_LOBBY);
 
   // unless yung state ng message is contained to itself
-  const [sendMessage, sendMessageProperties] = useMutation(SEND_MESSAGE);
+  const [sendMessage, sendMessageProperties]: MutationTuple<
+    { addMessage: AddMessageResponse },
+    { addMessageInput: Message }
+  > = useMutation(SEND_MESSAGE);
 
   const newMessageSub: SubscriptionResult<
     { messageAdded: NewMessageSubResponse },
@@ -210,6 +212,35 @@ function Chatter(props: ChatterProps) {
     Array<{ username: string; id: string }>
   >([]);
 
+  const messageSendingCallback = async (message: Message) => {
+    let res: FetchResult<{ addMessage: AddMessageResponse }> =
+      await sendMessage({
+        variables: {
+          addMessageInput: message,
+        },
+      });
+    if (res.data) {
+      let { message: messageRes, localDateSent } = res.data.addMessage;
+      dispatchMessage({
+        type: SendStatus.SENT,
+        payload: {
+          ...messageRes,
+          localDateSent: localDateSent,
+          sender: userContext.userId,
+        },
+      });
+    } else {
+      dispatchMessage({
+        type: SendStatus.FAILED,
+        payload: {
+          ...message,
+          localDateSent: message.localDateSent ?? "",
+          sender: userContext.userId,
+        },
+      });
+    }
+  };
+
   const handleSendMessage = (message: string) => {
     const messageStatusIndex: number = messages.length;
 
@@ -223,7 +254,7 @@ function Chatter(props: ChatterProps) {
         sendStatus: SendStatus.SENDING,
         index: messageStatusIndex,
         localDateSent: new Date().getTime() + "",
-        callback: sendMessage,
+        callback: messageSendingCallback,
         sendType: 1,
       },
     });
@@ -265,11 +296,11 @@ function Chatter(props: ChatterProps) {
 
   useEffect(() => {
     if (sendMessageProperties?.data) {
-      let { message, localDateSent } = sendMessageProperties.data.addMessage;
-      dispatchMessage({
-        type: SendStatus.SENT,
-        payload: { ...message, localDateSent, sender: message.from.id },
-      });
+      // let { message, localDateSent } = sendMessageProperties.data.addMessage;
+      // dispatchMessage({
+      //   type: SendStatus.SENT,
+      //   payload: { ...message, localDateSent, sender: message?.from?.id ?? "" },
+      // });
     }
 
     if (sendMessageProperties?.error) {
