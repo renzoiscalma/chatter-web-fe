@@ -9,6 +9,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import React, { KeyboardEvent, useContext } from "react";
 import { UsrContxt } from "../../App";
+import { NONE_LOBBY_ID } from "../../util/constants";
 
 interface SenderProps {
   handleSendMessage(message: string): void;
@@ -20,7 +21,7 @@ interface State {
 function Sender({ handleSendMessage }: SenderProps): JSX.Element {
   const theme = useTheme();
 
-  const userContext = useContext(UsrContxt);
+  const { userId, lobbyId } = useContext(UsrContxt);
 
   const [values, setValues] = React.useState<State>({
     message: "",
@@ -90,6 +91,7 @@ function Sender({ handleSendMessage }: SenderProps): JSX.Element {
         size="small"
         sx={textFieldStyle}
         endAdornment={sendButton}
+        disabled={!lobbyId || !userId || lobbyId === NONE_LOBBY_ID}
       />
     </Box>
   );

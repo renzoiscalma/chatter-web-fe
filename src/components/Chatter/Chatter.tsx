@@ -7,7 +7,7 @@ import {
   useMutation,
   useSubscription,
 } from "@apollo/client";
-import { Divider, SxProps } from "@mui/material";
+import { CircularProgress, Divider, SxProps } from "@mui/material";
 import Box from "@mui/material/Box";
 import { useTheme } from "@mui/material/styles";
 import { useContext, useEffect, useReducer, useRef, useState } from "react";
@@ -121,6 +121,7 @@ function sendMessageReducer(
 function Chatter(props: ChatterProps) {
   const userContext = useContext(UsrContxt);
   const bottomDivRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const theme = useTheme();
   // TODO QUERY RESULT ADD PROPER TYPES
   const [getExistingMsg, getExistingMsgQueryRes]: LazyQueryResultTuple<
@@ -128,7 +129,7 @@ function Chatter(props: ChatterProps) {
     any
   > = useLazyQuery(GET_MESSAGES_ON_LOBBY);
 
-  const [getCurrUsers, getCurrUsersQueryRes]: LazyQueryResultTuple<
+  const [getCurrUsers]: LazyQueryResultTuple<
     {
       getCurrentUsersOnLobby: GenericResponse & {
         data: Array<{ username: string; id: string }>;
@@ -140,7 +141,7 @@ function Chatter(props: ChatterProps) {
   > = useLazyQuery(GET_CURR_USERS_ON_LOBBY);
 
   // unless yung state ng message is contained to itself
-  const [sendMessage, sendMessageProperties]: MutationTuple<
+  const [sendMessage]: MutationTuple<
     { addMessage: AddMessageResponse },
     { addMessageInput: Message }
   > = useMutation(SEND_MESSAGE);
@@ -276,12 +277,15 @@ function Chatter(props: ChatterProps) {
 
   useEffect(() => {
     if (userContext.lobbyId && userContext.lobbyId !== "NONE") {
+      setLoading(true);
       getCurrUsers({
         variables: { lobbyId: userContext.lobbyId },
       });
       getExistingMsg({
         variables: { lobbyId: userContext.lobbyId },
       });
+    } else {
+      setLoading(false);
     }
   }, [userContext.lobbyId, getCurrUsers, getExistingMsg]);
 
@@ -291,11 +295,11 @@ function Chatter(props: ChatterProps) {
         type: "FETCH_ALL",
         payload: getExistingMsgQueryRes.data.getMessagesOnLobby.data,
       });
+      setLoading(false);
     }
   }, [getExistingMsgQueryRes.data]);
 
   useEffect(() => {
-    // todo add types
     if (newMessageSub?.data?.messageAdded)
       dispatchMessage({
         type: "NEW_MESSAGE",
@@ -428,15 +432,23 @@ function Chatter(props: ChatterProps) {
         setShowLobbyUsers={setShowLobbyUsers}
         showLobbyUsers={showLobbyUsers}
       />
-      {showLobbyUsers ? (
-        <UserList users={currentLobbyUsers} />
+      {loading ? (
+        <>
+          <CircularProgress sx={{ margin: "auto" }} />
+        </>
       ) : (
-        <Messages messages={messages}>
-          <div ref={bottomDivRef} />
-        </Messages>
+        <>
+          {showLobbyUsers ? (
+            <UserList users={currentLobbyUsers} />
+          ) : (
+            <Messages messages={messages}>
+              <div ref={bottomDivRef} />
+            </Messages>
+          )}
+          <Divider></Divider>
+          <Sender handleSendMessage={handleSendMessage}></Sender>
+        </>
       )}
-      <Divider></Divider>
-      <Sender handleSendMessage={handleSendMessage}></Sender>
     </Box>
   );
 }
