@@ -295,27 +295,6 @@ function Chatter(props: ChatterProps) {
   }, [getExistingMsgQueryRes.data]);
 
   useEffect(() => {
-    if (sendMessageProperties?.data) {
-      // let { message, localDateSent } = sendMessageProperties.data.addMessage;
-      // dispatchMessage({
-      //   type: SendStatus.SENT,
-      //   payload: { ...message, localDateSent, sender: message?.from?.id ?? "" },
-      // });
-    }
-
-    if (sendMessageProperties?.error) {
-      console.error("ERROR HAS OCCURED");
-    }
-  }, [sendMessageProperties.data, sendMessageProperties?.error]);
-
-  useEffect(() => {
-    if (getCurrUsersQueryRes?.data) {
-      let { data } = getCurrUsersQueryRes.data.getCurrentUsersOnLobby;
-      setCurrentLobbyUsers(data);
-    }
-  }, [getCurrUsersQueryRes.data]);
-
-  useEffect(() => {
     // todo add types
     if (newMessageSub?.data?.messageAdded)
       dispatchMessage({
