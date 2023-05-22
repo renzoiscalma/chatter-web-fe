@@ -1,7 +1,7 @@
 {
   "name": "chatter-react",
   "version": "0.1.0",
-  "homepage": "https://chitterchatter.com",
+  "homepage": "chitterchatter.com",
   "private": true,
   "dependencies": {
     "@apollo/client": "^3.7.0",
