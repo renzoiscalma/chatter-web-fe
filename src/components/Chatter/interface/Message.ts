@@ -5,6 +5,10 @@ export default interface Message {
   sender: string;
   senderUsername?: string;
   to: string;
+  from?: {
+    id: string;
+    username: string;
+  };
   date?: Date;
   imgUrl?: string;
   sendStatus?: SendStatus;

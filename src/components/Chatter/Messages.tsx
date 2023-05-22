@@ -175,14 +175,18 @@ function Messages({ messages, children }: MessageProps): JSX.Element {
         {messages ? (
           messages.map((value: Message, index: number, messages: Message[]) => {
             return value.sendType === 1 ? (
-              <React.Fragment key={value.date?.getTime()}>
+              <React.Fragment
+                key={value.date?.getTime() || value?.localDateSent}
+              >
                 <Box sx={getNameStyle(value)}>{value.senderUsername}</Box>
                 <Paper sx={getMessageBubbleStyle(value, index, messages)}>
                   {value.message} {generateMessageStatus(value)}
                 </Paper>
               </React.Fragment>
             ) : (
-              <Box sx={messageType2Sx}>{value.message}</Box>
+              <Box sx={messageType2Sx} key={value?.localDateSent}>
+                {value.message}
+              </Box>
             );
           })
         ) : (

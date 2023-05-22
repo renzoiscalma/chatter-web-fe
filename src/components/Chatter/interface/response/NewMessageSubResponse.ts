@@ -1,14 +1,8 @@
+import Message from "../Message";
+
 interface NewMessageSubResponse {
   lobbydId: string;
-  messages: {
-    date: string;
-    from: {
-      id: string;
-      type: number;
-      username: string;
-    };
-    message: string;
-  }[];
+  messages: Message[];
 }
 
 export default NewMessageSubResponse;

@@ -41,7 +41,7 @@ function UserList({ users }: UserList): JSX.Element {
       <Box sx={lobbyListContainer}>
         {users ? (
           users.map((user) => (
-            <Box sx={userContainer} key={user.id}>
+            <Box sx={userContainer} key={user.username}>
               <AccountCircleIcon sx={userIcon} />
               <Typography sx={nameStyle}>{user.username}</Typography>
             </Box>

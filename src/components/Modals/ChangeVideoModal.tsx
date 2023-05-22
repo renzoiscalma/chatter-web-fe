@@ -77,7 +77,7 @@ function ChangeVideoModal({
 
   const handleSubmit = (): void => {
     if (validateYtUrl(values.input)) {
-      userContext.setVideo(values.input);
+      userContext.setVideoUrl(values.input);
       handleCloseModal();
     } else {
       setValues((values) => ({ ...values, error: true }));

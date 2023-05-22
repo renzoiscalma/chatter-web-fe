@@ -1,11 +1,13 @@
 import {
+  FetchResult,
   LazyQueryResultTuple,
+  MutationTuple,
   SubscriptionResult,
   useLazyQuery,
   useMutation,
   useSubscription,
 } from "@apollo/client";
-import { Divider, SxProps } from "@mui/material";
+import { CircularProgress, Divider, SxProps } from "@mui/material";
 import Box from "@mui/material/Box";
 import { useTheme } from "@mui/material/styles";
 import { useContext, useEffect, useReducer, useRef, useState } from "react";
@@ -25,6 +27,7 @@ import Sender from "./Sender";
 import UserList from "./UserList";
 import Message from "./interface/Message";
 import SendStatus from "./interface/SendStatus";
+import AddMessageResponse from "./interface/response/AddMessageResponse";
 import GenericResponse from "./interface/response/GenericResponse";
 import NewMessageSubResponse from "./interface/response/NewMessageSubResponse";
 import UsernameChangedSubResponse from "./interface/response/UsernameChangedSubResponse";
@@ -74,30 +77,26 @@ function sendMessageReducer(
           sendType: 1,
         };
       });
-    case SendStatus.FAILED:
-      return {} as Message[];
     case SendStatus.SENDING: {
-      let { to, sender, message, localDateSent } = action.payload;
+      let { to, sender, message, localDateSent, callback } = action.payload;
       messages.push(action.payload);
-      action.payload.callback({
-        variables: {
-          addMessageInput: {
-            to,
-            from: sender,
-            message,
-            localDateSent,
-          },
-        },
+      callback({
+        to,
+        from: sender,
+        message,
+        localDateSent,
       });
       return [...messages];
     }
+    case SendStatus.FAILED:
     case SendStatus.SENT: {
       let { localDateSent, sender } = action.payload;
-      let targetMessage = messages.filter(
-        (message) =>
-          message.localDateSent === localDateSent && message.sender === sender
-      );
-      targetMessage[0].sendStatus = SendStatus.SENT;
+      messages
+        .filter(
+          (message) =>
+            message.localDateSent === localDateSent && message.sender === sender
+        )
+        .forEach((message) => (message.sendStatus = action.type));
       return [...messages];
     }
     case "NEW_MESSAGE": {
@@ -122,6 +121,7 @@ function sendMessageReducer(
 function Chatter(props: ChatterProps) {
   const userContext = useContext(UsrContxt);
   const bottomDivRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const theme = useTheme();
   // TODO QUERY RESULT ADD PROPER TYPES
   const [getExistingMsg, getExistingMsgQueryRes]: LazyQueryResultTuple<
@@ -129,7 +129,7 @@ function Chatter(props: ChatterProps) {
     any
   > = useLazyQuery(GET_MESSAGES_ON_LOBBY);
 
-  const [getCurrUsers, getCurrUsersQueryRes]: LazyQueryResultTuple<
+  const [getCurrUsers]: LazyQueryResultTuple<
     {
       getCurrentUsersOnLobby: GenericResponse & {
         data: Array<{ username: string; id: string }>;
@@ -141,7 +141,10 @@ function Chatter(props: ChatterProps) {
   > = useLazyQuery(GET_CURR_USERS_ON_LOBBY);
 
   // unless yung state ng message is contained to itself
-  const [sendMessage, sendMessageProperties] = useMutation(SEND_MESSAGE);
+  const [sendMessage]: MutationTuple<
+    { addMessage: AddMessageResponse },
+    { addMessageInput: Message }
+  > = useMutation(SEND_MESSAGE);
 
   const newMessageSub: SubscriptionResult<
     { messageAdded: NewMessageSubResponse },
@@ -203,13 +206,41 @@ function Chatter(props: ChatterProps) {
     initialMessages
   );
 
-  const [initializedMessage, setInitializedMessage] = useState<boolean>(false);
   const [initializedLobbyList, setInitializedLobbyList] =
     useState<boolean>(false);
   const [showLobbyUsers, setShowLobbyUsers] = useState<boolean>(false);
   const [currentLobbyUsers, setCurrentLobbyUsers] = useState<
     Array<{ username: string; id: string }>
   >([]);
+
+  const messageSendingCallback = async (message: Message) => {
+    let res: FetchResult<{ addMessage: AddMessageResponse }> =
+      await sendMessage({
+        variables: {
+          addMessageInput: message,
+        },
+      });
+    if (res.data) {
+      let { message: messageRes, localDateSent } = res.data.addMessage;
+      dispatchMessage({
+        type: SendStatus.SENT,
+        payload: {
+          ...messageRes,
+          localDateSent: localDateSent,
+          sender: userContext.userId,
+        },
+      });
+    } else {
+      dispatchMessage({
+        type: SendStatus.FAILED,
+        payload: {
+          ...message,
+          localDateSent: message.localDateSent ?? "",
+          sender: userContext.userId,
+        },
+      });
+    }
+  };
 
   const handleSendMessage = (message: string) => {
     const messageStatusIndex: number = messages.length;
@@ -224,68 +255,51 @@ function Chatter(props: ChatterProps) {
         sendStatus: SendStatus.SENDING,
         index: messageStatusIndex,
         localDateSent: new Date().getTime() + "",
-        callback: sendMessage,
+        callback: messageSendingCallback,
         sendType: 1,
       },
     });
   };
 
   useEffect(() => {
-    if (!props.chatHidden && !showLobbyUsers) {
-      // wait for the transition to end
+    if (!props.chatHidden) {
       setTimeout(() => {
         bottomDivRef?.current?.scrollIntoView();
       }, 750);
     }
-  }, [messages, showLobbyUsers, props.chatHidden]);
+  }, [props.chatHidden]);
+
+  useEffect(() => {
+    if (props.chatHidden) return;
+    bottomDivRef?.current?.scrollIntoView();
+    // eslint-disable-next-line
+  }, [messages, showLobbyUsers]); // have to disable next line because i don't want to call this useEffect when chatHidden hcanges
 
   useEffect(() => {
     if (userContext.lobbyId && userContext.lobbyId !== "NONE") {
+      setLoading(true);
       getCurrUsers({
         variables: { lobbyId: userContext.lobbyId },
       });
       getExistingMsg({
         variables: { lobbyId: userContext.lobbyId },
       });
+    } else {
+      setLoading(false);
     }
   }, [userContext.lobbyId, getCurrUsers, getExistingMsg]);
 
   useEffect(() => {
-    if (
-      !initializedMessage && // TODO what is this for
-      getExistingMsgQueryRes.data?.getMessagesOnLobby?.success
-    ) {
-      setInitializedMessage(true);
+    if (getExistingMsgQueryRes.data?.getMessagesOnLobby?.success) {
       dispatchMessage({
         type: "FETCH_ALL",
         payload: getExistingMsgQueryRes.data.getMessagesOnLobby.data,
       });
+      setLoading(false);
     }
-  }, [initializedMessage, getExistingMsgQueryRes.data]);
+  }, [getExistingMsgQueryRes.data]);
 
   useEffect(() => {
-    if (sendMessageProperties?.data) {
-      let { message, localDateSent } = sendMessageProperties.data.addMessage;
-      dispatchMessage({
-        type: SendStatus.SENT,
-        payload: { ...message, localDateSent, sender: message.from.id },
-      });
-    }
-
-    if (sendMessageProperties?.error) {
-      console.error("ERROR HAS OCCURED");
-    }
-  }, [sendMessageProperties.data, sendMessageProperties?.error]);
-
-  useEffect(() => {
-    if (getCurrUsersQueryRes?.data) {
-      let { data } = getCurrUsersQueryRes.data.getCurrentUsersOnLobby;
-      setCurrentLobbyUsers(data);
-    }
-  }, [getCurrUsersQueryRes.data]);
-
-  useEffect(() => {
-    // todo add types
     if (newMessageSub?.data?.messageAdded)
       dispatchMessage({
         type: "NEW_MESSAGE",
@@ -327,7 +341,12 @@ function Chatter(props: ChatterProps) {
         dispatchMessageLeftLobby(userLeft[0].username);
       }
     }
-  }, [userListChangedSub]);
+  }, [
+    userListChangedSub,
+    currentLobbyUsers,
+    initializedLobbyList,
+    userContext.username,
+  ]);
 
   useEffect(() => {
     if (videoChanges.data?.videoStatusChanged) {
@@ -338,6 +357,7 @@ function Chatter(props: ChatterProps) {
         sender: "Admin",
         to: "Everyone",
         sendType: -1,
+        localDateSent: new Date().getTime() + "",
       };
       if (url) {
         payload.message = `${changedBy} has changed the video`;
@@ -367,6 +387,7 @@ function Chatter(props: ChatterProps) {
           sender: "Admin",
           to: "Everyone",
           sendType: -1,
+          localDateSent: new Date().getTime() + "",
         },
       ],
     });
@@ -381,6 +402,7 @@ function Chatter(props: ChatterProps) {
           sender: "Admin",
           to: "Everyone",
           sendType: -1,
+          localDateSent: new Date().getTime() + "",
         },
       ],
     });
@@ -410,15 +432,23 @@ function Chatter(props: ChatterProps) {
         setShowLobbyUsers={setShowLobbyUsers}
         showLobbyUsers={showLobbyUsers}
       />
-      {showLobbyUsers ? (
-        <UserList users={currentLobbyUsers} />
+      {loading ? (
+        <>
+          <CircularProgress sx={{ margin: "auto" }} />
+        </>
       ) : (
-        <Messages messages={messages}>
-          <div ref={bottomDivRef} />
-        </Messages>
+        <>
+          {showLobbyUsers ? (
+            <UserList users={currentLobbyUsers} />
+          ) : (
+            <Messages messages={messages}>
+              <div ref={bottomDivRef} />
+            </Messages>
+          )}
+          <Divider></Divider>
+          <Sender handleSendMessage={handleSendMessage}></Sender>
+        </>
       )}
-      <Divider></Divider>
-      <Sender handleSendMessage={handleSendMessage}></Sender>
     </Box>
   );
 }

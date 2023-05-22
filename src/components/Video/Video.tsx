@@ -51,9 +51,9 @@ function Video(): JSX.Element {
   const [playerProps, setPlayerProps] =
     useState<ReactPlayerProps>(defaultPlayerProps);
   const [updateFromBE, setUpdateFromBE] = useState<boolean>(false);
-  const ytContainer = useRef<HTMLDivElement>(null);
+  const videoContainer = useRef<HTMLDivElement>(null);
   const playerRef = useRef<ReactPlayer>(null);
-  const videoSize = useContainerDimension(ytContainer);
+  const videoSize = useContainerDimension(videoContainer);
 
   // needed to track the correct state on callbacks
   // SOURCE: https://stackoverflow.com/questions/57847594/react-hooks-accessing-up-to-date-state-from-within-a-callback
@@ -84,7 +84,7 @@ function Video(): JSX.Element {
     display: "flex",
     bgcolor: "#000",
     width: "inherit",
-    height: "calc(100vh - 64px)", // -64px because of top nav bar
+    height: "100%", // -64px because of top nav bar
     "> div": {
       paddingTop: "30px",
       paddingBottom: "30px",
@@ -152,7 +152,6 @@ function Video(): JSX.Element {
 
   useEffect(() => {
     if (videoChanges?.data?.videoStatusChanged) {
-      console.log(videoChanges?.data?.videoStatusChanged, "update from BE");
       setUpdateFromBE(true);
       const { currTime, status, url } =
         videoChanges.data.videoStatusChanged.data;
@@ -200,44 +199,37 @@ function Video(): JSX.Element {
 
   useEffect(() => {
     if (videoStatusQueryRes.data) {
-      console.log(videoStatusQueryRes.data);
-      const { data } = videoStatusQueryRes.data.getVideoStatusOnLobby;
+      const { currTime, url, status } =
+        videoStatusQueryRes.data.getVideoStatusOnLobby.data;
 
-      if (data.currTime > 0) {
-        playerRef.current?.seekTo(data.currTime);
+      if (currTime > 0) {
+        playerRef.current?.seekTo(currTime);
       }
-
-      setPlayerProps((val) => ({
-        ...val,
-        url: data.url,
-        playing: data.status === 1,
-        played: 0,
-        loaded: 0,
-        pip: false,
-        loop: false,
-      }));
+      if (url) {
+        setPlayerProps((val) => ({
+          ...val,
+          url: url,
+          playing: status === 1,
+          played: 0,
+          loaded: 0,
+          pip: false,
+          loop: false,
+        }));
+      }
     }
   }, [videoStatusQueryRes.data]);
 
   useEffect(() => {
-    setPlayerProps((values) => ({
-      ...values,
-      width: "100%",
-      height: videoSize.height - 60, // -60 because of padding top and bottom, 30 + 30 = 60
-    }));
-  }, [videoSize]);
-
-  // required whenever creating lobby.
-  useEffect(() => {
-    if (userContext.videoUrl)
+    if (userContext.videoUrl || playerProps.url)
       setPlayerProps((val) => ({
         ...val,
-        url: userContext.videoUrl,
+        url: userContext.videoUrl || playerProps.url,
+        width: "100%",
+        height: videoSize.height - 60,
       }));
-  }, [userContext.videoUrl]);
+  }, [videoSize, playerProps.url, userContext.videoUrl]);
 
   useEffect(() => {
-    console.log(userContext.lobbyId);
     if (userContext.lobbyId && userContext.lobbyId !== "NONE") {
       videoStatus({
         variables: {
@@ -248,7 +240,7 @@ function Video(): JSX.Element {
   }, [userContext.lobbyId]);
 
   return (
-    <Box sx={videoContainerStyle} ref={ytContainer}>
+    <Box sx={videoContainerStyle} ref={videoContainer}>
       <ReactPlayer {...playerProps} ref={playerRef}></ReactPlayer>
     </Box>
   );
