@@ -34,7 +34,7 @@ export const UsrContxt = createContext<UserContext>({
   setUsername: () => {},
   setLobbyId: () => {},
   darkModeToggle: () => {},
-  setVideo: () => {},
+  setVideoUrl: () => {},
 });
 
 function App(): JSX.Element {
@@ -44,7 +44,7 @@ function App(): JSX.Element {
   const [videoUrl, setVideoUrl] = useState<string>("");
   const [darkMode, setDarkMode] = useState<boolean>(true);
   const [userCookie, setUserCookie] = useCookies(["user-cookie"]);
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   // TODO ADD PROPER TYPES
   const [newUserMutation, newUserMutationRes]: MutationTuple<
@@ -53,13 +53,13 @@ function App(): JSX.Element {
   > = useMutation(ADD_NEW_USER);
 
   // TODO interface for params
-  const [addUserToLobbyMutation, addUserToLobbbyMutRes]: MutationTuple<
+  const [addUserToLobbyMutation]: MutationTuple<
     { addUserToLobby: GenericResponse },
     { lobbyId: string; userId: string }
   > = useMutation(ADD_USER_TO_LOBBY);
 
   // TODO interface for params
-  const [removeUserToLobbyMutation, removeUserToLobbyMutRes]: MutationTuple<
+  const [removeUserToLobbyMutation]: MutationTuple<
     { removeUserToLobby: GenericResponse },
     { lobbyId: string; userId: string }
   > = useMutation(REMOVE_USER_TO_LOBBY);
@@ -69,12 +69,12 @@ function App(): JSX.Element {
     IsLobbyExistingRequest
   > = useLazyQuery(IS_LOBBY_EXISTING);
 
-  const [videoUrlMutation, videoUrlMutationProps]: MutationTuple<
+  const [videoUrlMutation]: MutationTuple<
     { updateVideoStatus: GenericResponse },
     { statusInput: UpdateVideoStatusRequest }
   > = useMutation(UPDATE_VIDEO);
 
-  const handleSetVideo = (videoUrl: string) => {
+  const handleSetVideoUrl = (videoUrl: string) => {
     setVideoUrl(videoUrl);
   };
 
@@ -191,7 +191,7 @@ function App(): JSX.Element {
         lobbyId,
         darkMode,
         videoUrl,
-        setVideo: handleSetVideo,
+        setVideoUrl: handleSetVideoUrl,
         darkModeToggle: handleDarkModeToggle,
         setLobbyId: handleSetLobbyId,
       }}
