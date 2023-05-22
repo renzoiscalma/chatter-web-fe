@@ -156,7 +156,6 @@ function Video(): JSX.Element {
       const { currTime, status, url } =
         videoChanges.data.videoStatusChanged.data;
       if (url) {
-        userContext.setVideoUrl(url);
         setPlayerProps((values) => ({
           ...values,
           url,
@@ -207,7 +206,6 @@ function Video(): JSX.Element {
         playerRef.current?.seekTo(currTime);
       }
       if (url) {
-        userContext.setVideoUrl(url);
         setPlayerProps((val) => ({
           ...val,
           url: url,
@@ -223,15 +221,14 @@ function Video(): JSX.Element {
 
   // required whenever creating lobby.
   useEffect(() => {
-    console.log(userContext.videoUrl);
-    if (userContext.videoUrl)
+    if (playerProps.url)
       setPlayerProps((val) => ({
         ...val,
-        url: userContext.videoUrl,
+        url: playerProps.url,
         width: "100%",
         height: videoSize.height - 60,
       }));
-  }, [videoSize, userContext.videoUrl]);
+  }, [videoSize, playerProps.url]);
 
   useEffect(() => {
     if (userContext.lobbyId && userContext.lobbyId !== "NONE") {
