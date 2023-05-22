@@ -18,6 +18,7 @@
     "@types/node": "^16.11.59",
     "@types/react": "^18.0.20",
     "@types/react-dom": "^18.0.6",
+    "caniuse-lite": "^1.0.30001489",
     "graphql": "^16.6.0",
     "graphql-ws": "^5.11.2",
     "immutable": "^4.1.0",
@@ -32,9 +33,9 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "start": "react-scripts start",
-    "predeploy": "gh-pages -d build",
-    "deploy": "npm run build",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
