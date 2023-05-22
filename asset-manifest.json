@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/chatter-web-fe/static/css/main.e6c13ad2.css",
+    "main.js": "/chatter-web-fe/static/js/main.fc567194.js",
+    "static/js/787.0e4d0196.chunk.js": "/chatter-web-fe/static/js/787.0e4d0196.chunk.js",
+    "static/media/chatter.png": "/chatter-web-fe/static/media/chatter.a8a23ca262fd4ea32fc5.png",
+    "index.html": "/chatter-web-fe/index.html",
+    "main.e6c13ad2.css.map": "/chatter-web-fe/static/css/main.e6c13ad2.css.map",
+    "main.fc567194.js.map": "/chatter-web-fe/static/js/main.fc567194.js.map",
+    "787.0e4d0196.chunk.js.map": "/chatter-web-fe/static/js/787.0e4d0196.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e6c13ad2.css",
+    "static/js/main.fc567194.js"
+  ]
+}
