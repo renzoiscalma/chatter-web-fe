@@ -219,16 +219,15 @@ function Video(): JSX.Element {
     }
   }, [videoStatusQueryRes.data]);
 
-  // required whenever creating lobby.
   useEffect(() => {
-    if (playerProps.url)
+    if (userContext.videoUrl || playerProps.url)
       setPlayerProps((val) => ({
         ...val,
-        url: playerProps.url,
+        url: userContext.videoUrl || playerProps.url,
         width: "100%",
         height: videoSize.height - 60,
       }));
-  }, [videoSize, playerProps.url]);
+  }, [videoSize, playerProps.url, userContext.videoUrl]);
 
   useEffect(() => {
     if (userContext.lobbyId && userContext.lobbyId !== "NONE") {
