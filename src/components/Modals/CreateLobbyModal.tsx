@@ -40,7 +40,7 @@ const CreateLobbyModal = ({
         videoUrl: videoUrl,
       },
     });
-    userContext.setVideo(videoUrl);
+    userContext.setVideoUrl(videoUrl);
   };
 
   const [values, setValues] = useState<InputState>({
