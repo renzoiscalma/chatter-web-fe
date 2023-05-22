@@ -1,7 +1,7 @@
 {
   "name": "chatter-react",
   "version": "0.1.0",
-  "homepage": "chitterchatter.com",
+  "homepage": "https://renzoiscalma.github.io/chatter-web-fe",
   "private": true,
   "dependencies": {
     "@apollo/client": "^3.7.0",
@@ -18,7 +18,6 @@
     "@types/node": "^16.11.59",
     "@types/react": "^18.0.20",
     "@types/react-dom": "^18.0.6",
-    "gh-pages": "^5.0.0",
     "graphql": "^16.6.0",
     "graphql-ws": "^5.11.2",
     "immutable": "^4.1.0",
@@ -57,5 +56,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "gh-pages": "^5.0.0"
   }
 }
