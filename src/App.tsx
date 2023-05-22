@@ -137,7 +137,7 @@ function App(): JSX.Element {
           statusInput: {
             url: videoUrl,
             lobbyId: lobbyId,
-            userId: userId, // needed to update self's video as well
+            userId: userId,
             currTime: 0,
             status: -1,
           },
@@ -149,6 +149,8 @@ function App(): JSX.Element {
     if (newUserMutationRes.data) {
       let { code, success, user } = newUserMutationRes.data.addNewUser;
       if (code === 200 && success) {
+        let currentDate = new Date();
+        currentDate.setFullYear(currentDate.getFullYear() + 1);
         setUsername(user.username);
         setUserId(user.id);
         setUserCookie(
@@ -156,7 +158,7 @@ function App(): JSX.Element {
           { userId: user.id, username: user.username },
           {
             path: "/",
-            expires: new Date("11-10-2023"),
+            expires: currentDate,
           }
         );
       }
