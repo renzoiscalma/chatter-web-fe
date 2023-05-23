@@ -1,18 +1,18 @@
-import ReactDOM from "react-dom/client";
-import "./index.css";
-import App from "./App";
-import reportWebVitals from "./reportWebVitals";
 import {
   ApolloClient,
-  InMemoryCache,
   ApolloProvider,
   HttpLink,
+  InMemoryCache,
   split,
 } from "@apollo/client";
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
-import { createClient } from "graphql-ws";
 import { getMainDefinition } from "@apollo/client/utilities";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createClient } from "graphql-ws";
+import ReactDOM from "react-dom/client";
+import { RouterProvider, createHashRouter } from "react-router-dom";
+import App from "./App";
+import "./index.css";
+import reportWebVitals from "./reportWebVitals";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -50,7 +50,7 @@ const client = new ApolloClient({
   cache: new InMemoryCache(),
 });
 
-const router = createBrowserRouter([
+const router = createHashRouter([
   {
     path: "/",
     element: <App />,
