@@ -4,10 +4,9 @@ import {
   useLazyQuery,
   useMutation,
 } from "@apollo/client";
-import { ThemeProvider } from "@mui/material/styles";
 import { useContext, useEffect } from "react";
 import { useCookies } from "react-cookie";
-import { useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { UsrContxt } from "./components/Chatter/UserContextProvider";
 import IsLobbyExistingRequest from "./components/Chatter/interface/requests/IsLobbyExistingRequest";
 import UpdateVideoStatusRequest from "./components/Chatter/interface/requests/UpdateVideoStatusRequest";
@@ -22,13 +21,12 @@ import {
   REMOVE_USER_TO_LOBBY,
 } from "./queries/App";
 import { UPDATE_VIDEO } from "./queries/Video";
-import { darkTheme, lightTheme } from "./theme";
 import { NONE_LOBBY_ID } from "./util/constants";
 
 function App(): JSX.Element {
   const userContext = useContext(UsrContxt);
   const [userCookie, setUserCookie] = useCookies(["user-cookie"]);
-  const [searchParams] = useSearchParams();
+  const searchParams = useParams();
 
   // TODO ADD PROPER TYPES
   const [newUserMutation, newUserMutationRes]: MutationTuple<
@@ -68,7 +66,7 @@ function App(): JSX.Element {
   };
 
   useEffect(() => {
-    const { userId, username } = userCookie["user-cookie"];
+    const { userId, username } = userCookie["user-cookie"] || {};
     if (!userId || !username) {
       newUserMutation();
     } else {
@@ -78,7 +76,7 @@ function App(): JSX.Element {
   }, [userCookie, userContext, newUserMutation]);
 
   useEffect(() => {
-    const lobbyId = searchParams.get("lobbyId") || "";
+    const lobbyId = searchParams.id;
     if (lobbyId) {
       isLobbyExisting({
         variables: {
@@ -152,13 +150,7 @@ function App(): JSX.Element {
     }
   }, [isLobbyExistingRes, userContext.lobbyId, userContext.userId]);
 
-  return (
-    <ThemeProvider theme={userContext.darkMode ? darkTheme : lightTheme}>
-      <div className="App">
-        <Layout />
-      </div>
-    </ThemeProvider>
-  );
+  return <Layout></Layout>;
 }
 
 export default App;
