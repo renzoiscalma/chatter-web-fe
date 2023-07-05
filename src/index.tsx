@@ -11,6 +11,7 @@ import { createClient } from "graphql-ws";
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createHashRouter } from "react-router-dom";
 import App from "./App";
+import UserContextProvider from "./components/Chatter/UserContextProvider";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
 
@@ -59,7 +60,9 @@ const router = createHashRouter([
 
 root.render(
   <ApolloProvider client={client}>
-    <RouterProvider router={router} />
+    <UserContextProvider>
+      <RouterProvider router={router} />
+    </UserContextProvider>
   </ApolloProvider>
 );
 

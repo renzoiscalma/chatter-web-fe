@@ -14,7 +14,8 @@ import {
 import MenuItem from "@mui/material/MenuItem";
 import { useTheme } from "@mui/material/styles";
 import { useContext } from "react";
-import { UsrContxt } from "../../App";
+import { UsrContxt } from "../Chatter/UserContextProvider";
+
 interface NavBarMenuProps {
   menuEl: HTMLElement | null;
   handleClose(): void;

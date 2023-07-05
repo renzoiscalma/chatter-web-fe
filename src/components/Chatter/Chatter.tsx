@@ -11,7 +11,6 @@ import { CircularProgress, Divider, SxProps } from "@mui/material";
 import Box from "@mui/material/Box";
 import { useTheme } from "@mui/material/styles";
 import { useContext, useEffect, useReducer, useRef, useState } from "react";
-import { UsrContxt } from "../../App";
 import {
   GET_CURR_USERS_ON_LOBBY,
   GET_MESSAGES_ON_LOBBY,
@@ -24,6 +23,7 @@ import { VIDEO_STATUS_SUBSCRIPTION } from "../../queries/Video";
 import MessageBar from "./MessageBar";
 import Messages from "./Messages";
 import Sender from "./Sender";
+import { UsrContxt } from "./UserContextProvider";
 import UserList from "./UserList";
 import Message from "./interface/Message";
 import SendStatus from "./interface/SendStatus";

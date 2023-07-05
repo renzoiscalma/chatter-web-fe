@@ -11,9 +11,10 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import { SxProps, useTheme } from "@mui/material/styles";
 import { MouseEvent, useContext, useEffect, useState } from "react";
-import { UsrContxt } from "../../App";
+
 import logo from "../../assets/chatter.png";
 import { NONE_LOBBY_ID } from "../../util/constants";
+import { UsrContxt } from "../Chatter/UserContextProvider";
 import ChangeUsernameModal from "../Modals/ChangeUsernameModal";
 import ChangeVideoModal from "../Modals/ChangeVideoModal";
 import CreateLobbyModal from "../Modals/CreateLobbyModal";
