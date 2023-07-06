@@ -6,6 +6,7 @@ import { SxProps, useTheme } from "@mui/material/styles";
 import { KeyboardEvent, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import HeroImage from "../../assets/watching-with-friends.png";
+import HeroBg from "../../assets/waves-bg.svg";
 import { ADD_USER_TO_LOBBY, CREATE_LOBBY } from "../../queries/App";
 import { validateYtUrl } from "../../util/helpers";
 import OutlinedField from "../InputField/OutlinedField";
@@ -34,6 +35,7 @@ function Hero(): JSX.Element {
     height: "100%",
     display: "flex",
     flexDirection: "column",
+    fontFamily: "Inter, sans-serif",
   };
 
   const imageSx: SxProps = {
@@ -56,6 +58,8 @@ function Hero(): JSX.Element {
     display: "flex",
     flexGrow: 1,
     alignItems: "center",
+    backgroundImage: `url(${HeroBg})`,
+    backgroundSize: "100% 100%",
   };
 
   const imageContainerSx: SxProps = {
@@ -71,7 +75,7 @@ function Hero(): JSX.Element {
     fontSize: "1.3em",
     fontWeight: "bold",
     background: theme.chat.bubbleTo,
-    color: theme.common.text.secondary,
+    color: theme.common.text.primary,
     "&: hover": {
       backgroundColor: theme.chat.bubbleTo,
     },
@@ -92,7 +96,13 @@ function Hero(): JSX.Element {
     flexWrap: "nowrap",
   };
 
-  const textFieldSx: SxProps = { width: "300px", alignSelf: "center" };
+  const textFieldSx: SxProps = {
+    width: "300px",
+    alignSelf: "center",
+    "~::placeholder": {
+      textAlign: "center",
+    },
+  };
 
   const [createLobbyMutation, createLobbyMutationRes]: MutationTuple<
     { createLobby: Lobby },
@@ -172,6 +182,7 @@ function Hero(): JSX.Element {
               onChange={handleChange("input")}
               onKeyDown={handleKeyDown}
               autoComplete="off"
+              autoFocus
               label="Enter a Youtube Url Here"
               error={values.error}
               helperText={values.error ? "Incorrect youtube link" : ""}

@@ -21,3 +21,11 @@ code {
 #root {
   height: 100%;
 }
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: local("Inter"), url(./assets/fonts/Inter-Regular.ttf);
+}
