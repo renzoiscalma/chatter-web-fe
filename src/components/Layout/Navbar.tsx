@@ -72,6 +72,7 @@ function Navbar({ mini }: NavbarProps): JSX.Element {
 
   const appBarStyle: SxProps = {
     bgcolor: theme.appBar.bgColor,
+    zIndex: 1,
   };
 
   const containerSx: SxProps = {

@@ -14,6 +14,7 @@ interface OutlinedFieldProps {
   onKeyDown(event: React.KeyboardEvent<HTMLInputElement>): void;
   disabled?: boolean;
   sx?: SxProps;
+  autoFocus?: boolean;
 }
 
 const OutlinedField = (props: OutlinedFieldProps): JSX.Element => {

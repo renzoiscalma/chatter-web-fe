@@ -2,6 +2,9 @@ import { Theme } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
 
 export const darkTheme = createTheme({
+  typography: {
+    fontFamily: "Inter, sans-serif",
+  },
   components: {
     MuiDivider: {
       styleOverrides: {
@@ -44,6 +47,9 @@ export const darkTheme = createTheme({
 });
 
 export const lightTheme: Theme = createTheme({
+  typography: {
+    fontFamily: "Inter, sans-serif",
+  },
   components: {
     MuiDivider: {
       styleOverrides: {
