@@ -49,7 +49,7 @@ function Hero(): JSX.Element {
 
   const subHeaderSx: SxProps = {
     color: theme.common.text.primary,
-    fontSize: "1em",
+    fontSize: "1.3em",
   };
 
   const heroContainerSx: SxProps = {
@@ -61,12 +61,15 @@ function Hero(): JSX.Element {
   const imageContainerSx: SxProps = {
     display: "flex",
     alignItems: "flex-end",
+    alignSelf: "center",
   };
 
   const buttonSx: SxProps = {
     width: "240px",
     height: "57px",
     alignSelf: "center",
+    fontSize: "1.3em",
+    fontWeight: "bold",
     background: theme.chat.bubbleTo,
     color: theme.common.text.secondary,
     "&: hover": {
@@ -79,12 +82,14 @@ function Hero(): JSX.Element {
     textAlign: "center",
     display: "flex",
     flexDirection: "column",
+    rowGap: 2,
   };
 
   const gridContainerSx: SxProps = {
     height: "100%",
     alignContent: "center",
     marginTop: 0,
+    flexWrap: "nowrap",
   };
 
   const textFieldSx: SxProps = { width: "300px", alignSelf: "center" };
