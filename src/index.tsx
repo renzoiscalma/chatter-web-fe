@@ -11,6 +11,9 @@ import { createClient } from "graphql-ws";
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createHashRouter } from "react-router-dom";
 import App from "./App";
+import Hero from "./components/Chatter/Hero";
+import ThemeProvider from "./components/Chatter/ThemeProvider";
+import UserContextProvider from "./components/Chatter/UserContextProvider";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
 
@@ -53,13 +56,21 @@ const client = new ApolloClient({
 const router = createHashRouter([
   {
     path: "/",
+    element: <Hero />,
+  },
+  {
+    path: "/lobbyId/:id",
     element: <App />,
   },
 ]);
 
 root.render(
   <ApolloProvider client={client}>
-    <RouterProvider router={router} />
+    <UserContextProvider>
+      <ThemeProvider>
+        <RouterProvider router={router} />
+      </ThemeProvider>
+    </UserContextProvider>
   </ApolloProvider>
 );
 

@@ -11,7 +11,6 @@ import { CircularProgress, Divider, SxProps } from "@mui/material";
 import Box from "@mui/material/Box";
 import { useTheme } from "@mui/material/styles";
 import { useContext, useEffect, useReducer, useRef, useState } from "react";
-import { UsrContxt } from "../../App";
 import {
   GET_CURR_USERS_ON_LOBBY,
   GET_MESSAGES_ON_LOBBY,
@@ -24,6 +23,7 @@ import { VIDEO_STATUS_SUBSCRIPTION } from "../../queries/Video";
 import MessageBar from "./MessageBar";
 import Messages from "./Messages";
 import Sender from "./Sender";
+import { UsrContxt } from "./UserContextProvider";
 import UserList from "./UserList";
 import Message from "./interface/Message";
 import SendStatus from "./interface/SendStatus";
@@ -126,7 +126,9 @@ function Chatter(props: ChatterProps) {
   // TODO QUERY RESULT ADD PROPER TYPES
   const [getExistingMsg, getExistingMsgQueryRes]: LazyQueryResultTuple<
     any,
-    any
+    {
+      lobbyId: string;
+    }
   > = useLazyQuery(GET_MESSAGES_ON_LOBBY);
 
   const [getCurrUsers]: LazyQueryResultTuple<
@@ -284,8 +286,6 @@ function Chatter(props: ChatterProps) {
       getExistingMsg({
         variables: { lobbyId: userContext.lobbyId },
       });
-    } else {
-      setLoading(false);
     }
   }, [userContext.lobbyId, getCurrUsers, getExistingMsg]);
 
@@ -297,7 +297,7 @@ function Chatter(props: ChatterProps) {
       });
       setLoading(false);
     }
-  }, [getExistingMsgQueryRes.data]);
+  }, [getExistingMsgQueryRes.data?.getMessagesOnLobby?.success]);
 
   useEffect(() => {
     if (newMessageSub?.data?.messageAdded)
@@ -409,21 +409,15 @@ function Chatter(props: ChatterProps) {
   };
 
   useEffect(() => {
+    console.log("fired");
     if (usernameChangedSub?.data?.usernameChanged) {
       const { id, username } = usernameChangedSub.data?.usernameChanged.data;
-      // modify messages to account change of name
       dispatchMessage({
         type: "USERNAME_CHANGED",
-        payload: usernameChangedSub.data.usernameChanged.data,
+        payload: { id, username },
       });
-      // modify user with the new username
-      setCurrentLobbyUsers((currentUsers) =>
-        currentUsers.map((user) =>
-          user.id === id ? { ...user, username: username } : user
-        )
-      );
     }
-  }, [usernameChangedSub.data]);
+  }, [usernameChangedSub?.data]);
 
   return (
     <Box sx={chatterContainer}>

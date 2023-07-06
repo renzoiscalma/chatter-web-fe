@@ -8,8 +8,8 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import React, { KeyboardEvent, useContext } from "react";
-import { UsrContxt } from "../../App";
 import { NONE_LOBBY_ID } from "../../util/constants";
+import { UsrContxt } from "./UserContextProvider";
 
 interface SenderProps {
   handleSendMessage(message: string): void;

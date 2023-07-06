@@ -7,6 +7,7 @@ interface UserContext {
   setVideoUrl(videUrl: string): void;
   setUsername(username: string): void;
   setLobbyId(lobbyId: string): void;
+  setUserId(userId: string): void;
   darkModeToggle(): void;
 }
 export default UserContext;

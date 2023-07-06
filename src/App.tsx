@@ -4,11 +4,10 @@ import {
   useLazyQuery,
   useMutation,
 } from "@apollo/client";
-import { ThemeProvider } from "@mui/material/styles";
-import { createContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
-import { useSearchParams } from "react-router-dom";
-import UserContext from "./components/Chatter/interface/UserContext";
+import { useParams } from "react-router-dom";
+import { UsrContxt } from "./components/Chatter/UserContextProvider";
 import IsLobbyExistingRequest from "./components/Chatter/interface/requests/IsLobbyExistingRequest";
 import UpdateVideoStatusRequest from "./components/Chatter/interface/requests/UpdateVideoStatusRequest";
 import AddNewUserResponse from "./components/Chatter/interface/response/AddNewUserResponse";
@@ -22,29 +21,13 @@ import {
   REMOVE_USER_TO_LOBBY,
 } from "./queries/App";
 import { UPDATE_VIDEO } from "./queries/Video";
-import { darkTheme, lightTheme } from "./theme";
 import { NONE_LOBBY_ID } from "./util/constants";
 
-export const UsrContxt = createContext<UserContext>({
-  username: "",
-  userId: "",
-  lobbyId: "",
-  videoUrl: "",
-  darkMode: true,
-  setUsername: () => {},
-  setLobbyId: () => {},
-  darkModeToggle: () => {},
-  setVideoUrl: () => {},
-});
-
 function App(): JSX.Element {
-  const [username, setUsername] = useState<string>("");
-  const [userId, setUserId] = useState<string>("");
-  const [lobbyId, setLobbyId] = useState<string>("");
-  const [videoUrl, setVideoUrl] = useState<string>("");
-  const [darkMode, setDarkMode] = useState<boolean>(true);
+  const userContext = useContext(UsrContxt);
+  const [validatedLobby, setValidatedLobby] = useState<boolean>(false);
   const [userCookie, setUserCookie] = useCookies(["user-cookie"]);
-  const [searchParams] = useSearchParams();
+  const searchParams = useParams();
 
   // TODO ADD PROPER TYPES
   const [newUserMutation, newUserMutationRes]: MutationTuple<
@@ -74,31 +57,7 @@ function App(): JSX.Element {
     { statusInput: UpdateVideoStatusRequest }
   > = useMutation(UPDATE_VIDEO);
 
-  const handleSetVideoUrl = (videoUrl: string) => {
-    setVideoUrl(videoUrl);
-  };
-
-  const handleSetLobbyId = (lobbyId: string) => {
-    setLobbyId(lobbyId);
-  };
-
-  const handleSetUsername = (username: string) => {
-    setUsername(username);
-    setUserCookie(
-      "user-cookie",
-      { userId: userId, username },
-      {
-        path: "/",
-        expires: new Date("11-10-2023"),
-      }
-    );
-  };
-
-  const handleDarkModeToggle = () => {
-    setDarkMode((val) => !val);
-  };
-
-  const handleBeforeUnload = (): void => {
+  const handleBeforeUnload = (lobbyId: string, userId: string): void => {
     removeUserToLobbyMutation({
       variables: {
         lobbyId,
@@ -108,17 +67,17 @@ function App(): JSX.Element {
   };
 
   useEffect(() => {
-    if (!userCookie?.["user-cookie"]) {
+    const { userId, username } = userCookie["user-cookie"] || {};
+    if (!userId || !username) {
       newUserMutation();
     } else {
-      const { userId, username } = userCookie["user-cookie"];
-      setUsername(username);
-      setUserId(userId);
+      if (userContext.username !== username) userContext.setUsername(username);
+      if (userContext.userId !== userId) userContext.setUserId(userId);
     }
-  }, [userCookie]);
+  }, [userCookie, userContext.username, userContext.userId]);
 
   useEffect(() => {
-    const lobbyId = searchParams.get("lobbyId") || "";
+    const lobbyId = searchParams.id;
     if (lobbyId) {
       isLobbyExisting({
         variables: {
@@ -126,24 +85,24 @@ function App(): JSX.Element {
         },
       });
     } else {
-      setLobbyId(NONE_LOBBY_ID); // needed to control initial createlobbymodal to pop up
+      userContext.setLobbyId(NONE_LOBBY_ID); // needed to control initial createlobbymodal to pop up
     }
   }, [searchParams]);
 
   useEffect(() => {
-    if (lobbyId && lobbyId !== NONE_LOBBY_ID)
+    if (userContext.lobbyId && userContext.lobbyId !== NONE_LOBBY_ID)
       videoUrlMutation({
         variables: {
           statusInput: {
-            url: videoUrl,
-            lobbyId: lobbyId,
-            userId: userId,
+            url: userContext.videoUrl,
+            lobbyId: userContext.lobbyId,
+            userId: userContext.userId,
             currTime: 0,
             status: -1,
           },
         },
       });
-  }, [videoUrl]);
+  }, [userContext.videoUrl]);
 
   useEffect(() => {
     if (newUserMutationRes.data) {
@@ -151,8 +110,8 @@ function App(): JSX.Element {
       if (code === 200 && success) {
         let currentDate = new Date();
         currentDate.setFullYear(currentDate.getFullYear() + 1);
-        setUsername(user.username);
-        setUserId(user.id);
+        userContext.setUsername(user.username);
+        userContext.setUserId(user.id);
         setUserCookie(
           "user-cookie",
           { userId: user.id, username: user.username },
@@ -167,44 +126,35 @@ function App(): JSX.Element {
 
   useEffect(() => {
     if (
-      userId &&
+      userContext.userId &&
       isLobbyExistingRes.data &&
-      isLobbyExistingRes.data.isLobbyExisting.isExisting
+      isLobbyExistingRes.data.isLobbyExisting.isExisting &&
+      !validatedLobby
     ) {
-      setLobbyId(isLobbyExistingRes.data.isLobbyExisting.lobbyId);
+      const { lobbyId } = isLobbyExistingRes.data.isLobbyExisting;
+
+      userContext.setLobbyId(lobbyId);
+
+      setValidatedLobby(true);
+
       addUserToLobbyMutation({
         variables: {
-          lobbyId: isLobbyExistingRes.data.isLobbyExisting.lobbyId,
-          userId,
+          lobbyId: lobbyId,
+          userId: userContext.userId,
         },
       });
-      window.addEventListener("beforeunload", handleBeforeUnload);
-      return () =>
-        window.removeEventListener("beforeUnload", handleBeforeUnload);
-    }
-  }, [isLobbyExistingRes, lobbyId, userId]);
 
-  return (
-    <UsrContxt.Provider
-      value={{
-        username,
-        setUsername: handleSetUsername,
-        userId,
-        lobbyId,
-        darkMode,
-        videoUrl,
-        setVideoUrl: handleSetVideoUrl,
-        darkModeToggle: handleDarkModeToggle,
-        setLobbyId: handleSetLobbyId,
-      }}
-    >
-      <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
-        <div className="App">
-          <Layout />
-        </div>
-      </ThemeProvider>
-    </UsrContxt.Provider>
-  );
+      window.addEventListener("beforeunload", () =>
+        handleBeforeUnload(lobbyId, userContext.userId)
+      );
+      return () =>
+        window.removeEventListener("beforeunload", () =>
+          handleBeforeUnload(lobbyId, userContext.userId)
+        );
+    }
+  }, [isLobbyExistingRes, userContext.lobbyId, userContext.userId]);
+
+  return <Layout></Layout>;
 }
 
 export default App;

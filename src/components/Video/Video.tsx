@@ -10,7 +10,7 @@ import Box from "@mui/material/Box";
 import { SxProps } from "@mui/system";
 import { useContext, useEffect, useRef, useState } from "react";
 import ReactPlayer, { ReactPlayerProps } from "react-player";
-import { UsrContxt } from "../../App";
+
 import {
   GET_VIDEO_STATUS,
   UPDATE_VIDEO,
@@ -20,6 +20,7 @@ import { useContainerDimension } from "../../util/ResizeUtil";
 import UpdateVideoStatusRequest from "../Chatter/interface/requests/UpdateVideoStatusRequest";
 import GenericResponse from "../Chatter/interface/response/GenericResponse";
 import VideoStatusTopicResponse from "../Chatter/interface/response/VideoStatusTopicResponse";
+import { UsrContxt } from "../Chatter/UserContextProvider";
 
 interface LobbyIdProps {
   lobbyId: string;
@@ -199,6 +200,7 @@ function Video(): JSX.Element {
 
   useEffect(() => {
     if (videoStatusQueryRes.data) {
+      console.log(videoStatusQueryRes);
       const { currTime, url, status } =
         videoStatusQueryRes.data.getVideoStatusOnLobby.data;
 
@@ -230,6 +232,7 @@ function Video(): JSX.Element {
   }, [videoSize, playerProps.url, userContext.videoUrl]);
 
   useEffect(() => {
+    console.log(userContext.lobbyId);
     if (userContext.lobbyId && userContext.lobbyId !== "NONE") {
       videoStatus({
         variables: {

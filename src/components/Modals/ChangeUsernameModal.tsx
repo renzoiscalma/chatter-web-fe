@@ -4,12 +4,13 @@ import { Button, CircularProgress } from "@mui/material";
 import { SxProps, useTheme } from "@mui/material/styles";
 import { Box } from "@mui/system";
 import { KeyboardEvent, useContext, useEffect, useState } from "react";
-import { UsrContxt } from "../../App";
 import { CHANGE_USERNAME, VALIDATE_USERNAME } from "../../queries/MessageBar";
+import { UsrContxt } from "../Chatter/UserContextProvider";
 import ChangeUsernameRequest from "../Chatter/interface/requests/ChangeUsernameRequest";
 import GenericResponse from "../Chatter/interface/response/GenericResponse";
 import OutlinedField from "../InputField/OutlinedField";
 import ModalBase from "./ModalBase";
+
 interface ChangeUsernameModalProps {
   opened: boolean;
   onClose(): void;

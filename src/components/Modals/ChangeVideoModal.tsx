@@ -2,8 +2,8 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import { SxProps, useTheme } from "@mui/material/styles";
 import { KeyboardEvent, useContext, useState } from "react";
-import { UsrContxt } from "../../App";
 import { validateYtUrl } from "../../util/helpers";
+import { UsrContxt } from "../Chatter/UserContextProvider";
 import OutlinedField from "../InputField/OutlinedField";
 import ModalBase from "./ModalBase";
 

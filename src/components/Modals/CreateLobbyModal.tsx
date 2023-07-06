@@ -2,9 +2,9 @@ import { MutationTuple, useMutation } from "@apollo/client";
 import Button from "@mui/material/Button";
 import { KeyboardEvent, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { UsrContxt } from "../../App";
 import { ADD_USER_TO_LOBBY, CREATE_LOBBY } from "../../queries/App";
 import { validateYtUrl } from "../../util/helpers";
+import { UsrContxt } from "../Chatter/UserContextProvider";
 import Lobby from "../Chatter/interface/Lobby";
 import GenericResponse from "../Chatter/interface/response/GenericResponse";
 import OutlinedField from "../InputField/OutlinedField";
@@ -58,7 +58,7 @@ const CreateLobbyModal = ({
       const { id } = createLobbyMutationRes.data.createLobby;
       userContext.setLobbyId(id);
       handleCloseModal();
-      navigate("/?lobbyId=" + id);
+      navigate("/lobbyId/" + id);
       addUserToLobbyMutation({
         variables: {
           lobbyId: id,
