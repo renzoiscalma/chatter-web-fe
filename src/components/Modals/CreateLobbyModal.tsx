@@ -58,7 +58,7 @@ const CreateLobbyModal = ({
       const { id } = createLobbyMutationRes.data.createLobby;
       userContext.setLobbyId(id);
       handleCloseModal();
-      navigate("/?lobbyId=" + id);
+      navigate("/lobbyId/" + id);
       addUserToLobbyMutation({
         variables: {
           lobbyId: id,

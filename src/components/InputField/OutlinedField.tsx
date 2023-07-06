@@ -13,12 +13,14 @@ interface OutlinedFieldProps {
   onChange(event: React.ChangeEvent<HTMLInputElement>): void;
   onKeyDown(event: React.KeyboardEvent<HTMLInputElement>): void;
   disabled?: boolean;
+  sx?: SxProps;
 }
 
 const OutlinedField = (props: OutlinedFieldProps): JSX.Element => {
   const theme = useTheme();
 
   const textFieldSx: SxProps = {
+    ...props.sx,
     margin: "18px 0",
     "& input.Mui-disabled": {
       WebkitTextFillColor: theme.common.text.secondary,

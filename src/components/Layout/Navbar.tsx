@@ -21,7 +21,11 @@ import CreateLobbyModal from "../Modals/CreateLobbyModal";
 import ShareLobbyModal from "../Modals/ShareLobbyModal";
 import NavBarMenu from "./NavBarMenu";
 
-function Navbar(): JSX.Element {
+interface NavbarProps {
+  mini?: boolean;
+}
+
+function Navbar({ mini }: NavbarProps): JSX.Element {
   const [menuEl, setMenuEl] = useState<null | HTMLElement>(null);
   const [changeVideoModal, setChangeVideoModal] = useState<boolean>(false);
   const [shareLobbyModal, setShareLobbyModal] = useState<boolean>(false);
@@ -78,6 +82,19 @@ function Navbar(): JSX.Element {
   const logoSx: SxProps = {
     width: 95,
   };
+
+  if (mini)
+    return (
+      <AppBar position="static" sx={appBarStyle}>
+        <Container sx={containerSx} maxWidth={false}>
+          <Toolbar disableGutters>
+            <Typography sx={{ flexGrow: 1 }}>
+              <Box component="img" sx={logoSx} alt="chatter" src={logo} />
+            </Typography>
+          </Toolbar>
+        </Container>
+      </AppBar>
+    );
 
   return (
     <AppBar position="static" sx={appBarStyle}>
