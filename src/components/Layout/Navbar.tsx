@@ -148,7 +148,7 @@ function Navbar({ mini }: NavbarProps): JSX.Element {
         }}
       />
       <ShareLobbyModal
-        lobbyUrl={`${process.env.REACT_APP_URI}?lobbyId=${userContext.lobbyId}`}
+        lobbyUrl={`${process.env.REACT_APP_URI}#/lobbyId/${userContext.lobbyId}`}
         opened={shareLobbyModal}
         handleCloseModal={() => {
           setShareLobbyModal(false);

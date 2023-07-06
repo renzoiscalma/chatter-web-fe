@@ -37,13 +37,21 @@ export default function UserContextProvider({
 
   const handleSetUserId = (userId: string) => {
     setUserId(userId);
+    setUserCookie(
+      "user-cookie",
+      { ...userCookie["user-cookie"], userId },
+      {
+        path: "/",
+        expires: new Date("11-10-2023"),
+      }
+    );
   };
 
   const handleSetUsername = (username: string) => {
     setUsername(username);
     setUserCookie(
       "user-cookie",
-      { userId: userId, username },
+      { ...userCookie["user-cookie"], username },
       {
         path: "/",
         expires: new Date("11-10-2023"),

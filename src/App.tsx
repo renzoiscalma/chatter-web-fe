@@ -4,7 +4,7 @@ import {
   useLazyQuery,
   useMutation,
 } from "@apollo/client";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useParams } from "react-router-dom";
 import { UsrContxt } from "./components/Chatter/UserContextProvider";
@@ -25,6 +25,7 @@ import { NONE_LOBBY_ID } from "./util/constants";
 
 function App(): JSX.Element {
   const userContext = useContext(UsrContxt);
+  const [validatedLobby, setValidatedLobby] = useState<boolean>(false);
   const [userCookie, setUserCookie] = useCookies(["user-cookie"]);
   const searchParams = useParams();
 
@@ -73,7 +74,7 @@ function App(): JSX.Element {
       if (userContext.username !== username) userContext.setUsername(username);
       if (userContext.userId !== userId) userContext.setUserId(userId);
     }
-  }, [userCookie, userContext, newUserMutation]);
+  }, [userCookie, userContext.username, userContext.userId]);
 
   useEffect(() => {
     const lobbyId = searchParams.id;
@@ -127,11 +128,14 @@ function App(): JSX.Element {
     if (
       userContext.userId &&
       isLobbyExistingRes.data &&
-      isLobbyExistingRes.data.isLobbyExisting.isExisting
+      isLobbyExistingRes.data.isLobbyExisting.isExisting &&
+      !validatedLobby
     ) {
       const { lobbyId } = isLobbyExistingRes.data.isLobbyExisting;
 
-      if (lobbyId !== userContext.lobbyId) userContext.setLobbyId(lobbyId);
+      userContext.setLobbyId(lobbyId);
+
+      setValidatedLobby(true);
 
       addUserToLobbyMutation({
         variables: {
