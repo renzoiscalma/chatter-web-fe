@@ -1,7 +1,7 @@
 {
   "name": "chatter-react",
   "version": "0.1.0",
-  "homepage": "https://renzoiscalma.github.io/chatter-web-fe",
+  "homepage": "https://renzoiscalma.github.io/chatter-web",
   "private": true,
   "dependencies": {
     "@apollo/client": "^3.7.0",
