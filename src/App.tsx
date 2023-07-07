@@ -83,6 +83,7 @@ function App(): JSX.Element {
 
   useEffect(() => {
     const lobbyId = searchParams.id;
+    console.log(lobbyId);
     if (lobbyId) {
       isLobbyExisting({
         variables: {
