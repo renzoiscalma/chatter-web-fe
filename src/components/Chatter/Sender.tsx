@@ -8,7 +8,6 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import React, { KeyboardEvent, useContext } from "react";
-import { NONE_LOBBY_ID } from "../../util/constants";
 import { UsrContxt } from "./UserContextProvider";
 
 interface SenderProps {
@@ -91,7 +90,7 @@ function Sender({ handleSendMessage }: SenderProps): JSX.Element {
         size="small"
         sx={textFieldStyle}
         endAdornment={sendButton}
-        disabled={!lobbyId || !userId || lobbyId === NONE_LOBBY_ID}
+        disabled={!lobbyId || !userId}
       />
     </Box>
   );

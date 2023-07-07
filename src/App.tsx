@@ -21,7 +21,6 @@ import {
   REMOVE_USER_TO_LOBBY,
 } from "./queries/App";
 import { UPDATE_VIDEO } from "./queries/Video";
-import { NONE_LOBBY_ID } from "./util/constants";
 
 function App(): JSX.Element {
   const userContext = useContext(UsrContxt);
@@ -93,10 +92,10 @@ function App(): JSX.Element {
     } else {
       navigate("/");
     }
-  }, [searchParams, isLobbyExisting, userContext, navigate]);
+  }, [searchParams, isLobbyExisting, navigate]);
 
   useEffect(() => {
-    if (userContext.lobbyId && userContext.lobbyId !== NONE_LOBBY_ID)
+    if (userContext.lobbyId)
       videoUrlMutation({
         variables: {
           statusInput: {
@@ -119,6 +118,7 @@ function App(): JSX.Element {
     if (newUserMutationRes.data) {
       let { code, success, user } = newUserMutationRes.data.addNewUser;
       if (code === 200 && success) {
+        newUserMutationRes.reset();
         let currentDate = new Date();
         currentDate.setFullYear(currentDate.getFullYear() + 1);
         userContext.setUsername(user.username);
@@ -133,7 +133,7 @@ function App(): JSX.Element {
         );
       }
     }
-  }, [newUserMutationRes.data, setUserCookie, userContext]);
+  }, [newUserMutationRes, setUserCookie, userContext]);
 
   useEffect(() => {
     if (userContext.userId && isLobbyExistingRes.data && !validatedLobby) {
