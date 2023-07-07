@@ -55,8 +55,9 @@ const client = new ApolloClient({
 
 const router = createHashRouter([
   {
-    path: "/",
+    index: true,
     element: <Hero />,
+    errorElement: <Hero />,
   },
   {
     path: "/lobbyId/:id",
