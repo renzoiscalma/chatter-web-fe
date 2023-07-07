@@ -196,11 +196,10 @@ function Video(): JSX.Element {
       onPlay: onPlayHandler,
       onPause: onPauseHandler,
     }));
-  }, [userContext]);
+  }, [userContext.lobbyId, userContext.userId]); // add these dependencies so we update handlers when the values change
 
   useEffect(() => {
     if (videoStatusQueryRes.data) {
-      console.log(videoStatusQueryRes);
       const { currTime, url, status } =
         videoStatusQueryRes.data.getVideoStatusOnLobby.data;
 
@@ -232,7 +231,6 @@ function Video(): JSX.Element {
   }, [videoSize, playerProps.url, userContext.videoUrl]);
 
   useEffect(() => {
-    console.log(userContext.lobbyId);
     if (userContext.lobbyId && userContext.lobbyId !== "NONE") {
       videoStatus({
         variables: {

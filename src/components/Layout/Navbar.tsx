@@ -10,10 +10,9 @@ import IconButton from "@mui/material/IconButton";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import { SxProps, useTheme } from "@mui/material/styles";
-import { MouseEvent, useContext, useEffect, useState } from "react";
+import { MouseEvent, useContext, useState } from "react";
 
 import logo from "../../assets/chatter.png";
-import { NONE_LOBBY_ID } from "../../util/constants";
 import { UsrContxt } from "../Chatter/UserContextProvider";
 import ChangeUsernameModal from "../Modals/ChangeUsernameModal";
 import ChangeVideoModal from "../Modals/ChangeVideoModal";
@@ -61,14 +60,6 @@ function Navbar({ mini }: NavbarProps): JSX.Element {
   const openCreateLobbyModal = (): void => {
     setCreateLobbyModal(true);
   };
-
-  useEffect(() => {
-    if (userContext.lobbyId === NONE_LOBBY_ID) {
-      openCreateLobbyModal();
-    } else {
-      setCreateLobbyModal(false);
-    }
-  }, [userContext.lobbyId]);
 
   const appBarStyle: SxProps = {
     bgcolor: theme.appBar.bgColor,
@@ -141,9 +132,7 @@ function Navbar({ mini }: NavbarProps): JSX.Element {
       </Container>
       <CreateLobbyModal
         opened={createLobbyModal}
-        closable={Boolean(
-          userContext.lobbyId !== NONE_LOBBY_ID && userContext.lobbyId
-        )}
+        closable={Boolean(userContext.lobbyId)}
         handleCloseModal={() => {
           setCreateLobbyModal(false);
         }}

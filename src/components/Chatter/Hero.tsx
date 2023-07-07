@@ -110,7 +110,6 @@ function Hero(): JSX.Element {
   > = useMutation(CREATE_LOBBY);
 
   const createLobby = (videoUrl: string) => {
-    // TODO add 1 second delay, loading = true modal should have a spinner inside
     createLobbyMutation({
       variables: {
         videoUrl: videoUrl,
@@ -126,6 +125,7 @@ function Hero(): JSX.Element {
 
   useEffect(() => {
     if (createLobbyMutationRes.data) {
+      createLobbyMutationRes.reset();
       const { id } = createLobbyMutationRes.data.createLobby;
       userContext.setLobbyId(id);
       navigate("/lobbyId/" + id);
@@ -136,7 +136,7 @@ function Hero(): JSX.Element {
         },
       });
     }
-  }, [createLobbyMutationRes.data]);
+  }, [createLobbyMutationRes.data, addUserToLobbyMutation]);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
     if (event.key === "Enter" && values.input !== "") {

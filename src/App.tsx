@@ -4,9 +4,9 @@ import {
   useLazyQuery,
   useMutation,
 } from "@apollo/client";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { UsrContxt } from "./components/Chatter/UserContextProvider";
 import IsLobbyExistingRequest from "./components/Chatter/interface/requests/IsLobbyExistingRequest";
 import UpdateVideoStatusRequest from "./components/Chatter/interface/requests/UpdateVideoStatusRequest";
@@ -21,13 +21,13 @@ import {
   REMOVE_USER_TO_LOBBY,
 } from "./queries/App";
 import { UPDATE_VIDEO } from "./queries/Video";
-import { NONE_LOBBY_ID } from "./util/constants";
 
 function App(): JSX.Element {
   const userContext = useContext(UsrContxt);
   const [validatedLobby, setValidatedLobby] = useState<boolean>(false);
   const [userCookie, setUserCookie] = useCookies(["user-cookie"]);
   const searchParams = useParams();
+  const navigate = useNavigate();
 
   // TODO ADD PROPER TYPES
   const [newUserMutation, newUserMutationRes]: MutationTuple<
@@ -57,24 +57,29 @@ function App(): JSX.Element {
     { statusInput: UpdateVideoStatusRequest }
   > = useMutation(UPDATE_VIDEO);
 
-  const handleBeforeUnload = (lobbyId: string, userId: string): void => {
-    removeUserToLobbyMutation({
-      variables: {
-        lobbyId,
-        userId,
-      },
-    });
-  };
+  const handleBeforeUnload = useCallback(
+    (lobbyId: string, userId: string): void => {
+      removeUserToLobbyMutation({
+        variables: {
+          lobbyId,
+          userId,
+        },
+      });
+    },
+    [removeUserToLobbyMutation]
+  );
 
   useEffect(() => {
     const { userId, username } = userCookie["user-cookie"] || {};
+    if (userContext.username === username && userContext.userId === userId)
+      return;
     if (!userId || !username) {
       newUserMutation();
     } else {
-      if (userContext.username !== username) userContext.setUsername(username);
-      if (userContext.userId !== userId) userContext.setUserId(userId);
+      userContext.setUsername(username);
+      userContext.setUserId(userId);
     }
-  }, [userCookie, userContext.username, userContext.userId]);
+  }, [userCookie, userContext, newUserMutation]);
 
   useEffect(() => {
     const lobbyId = searchParams.id;
@@ -85,12 +90,12 @@ function App(): JSX.Element {
         },
       });
     } else {
-      userContext.setLobbyId(NONE_LOBBY_ID); // needed to control initial createlobbymodal to pop up
+      navigate("/");
     }
-  }, [searchParams]);
+  }, [searchParams, isLobbyExisting, navigate]);
 
   useEffect(() => {
-    if (userContext.lobbyId && userContext.lobbyId !== NONE_LOBBY_ID)
+    if (userContext.lobbyId)
       videoUrlMutation({
         variables: {
           statusInput: {
@@ -102,12 +107,18 @@ function App(): JSX.Element {
           },
         },
       });
-  }, [userContext.videoUrl]);
+  }, [
+    userContext.videoUrl,
+    userContext.lobbyId,
+    userContext.userId,
+    videoUrlMutation,
+  ]);
 
   useEffect(() => {
     if (newUserMutationRes.data) {
       let { code, success, user } = newUserMutationRes.data.addNewUser;
       if (code === 200 && success) {
+        newUserMutationRes.reset();
         let currentDate = new Date();
         currentDate.setFullYear(currentDate.getFullYear() + 1);
         userContext.setUsername(user.username);
@@ -122,15 +133,14 @@ function App(): JSX.Element {
         );
       }
     }
-  }, [newUserMutationRes.data]);
+  }, [newUserMutationRes, setUserCookie, userContext]);
 
   useEffect(() => {
-    if (
-      userContext.userId &&
-      isLobbyExistingRes.data &&
-      isLobbyExistingRes.data.isLobbyExisting.isExisting &&
-      !validatedLobby
-    ) {
+    if (userContext.userId && isLobbyExistingRes.data && !validatedLobby) {
+      if (!isLobbyExistingRes.data.isLobbyExisting.isExisting) {
+        navigate("/");
+      }
+
       const { lobbyId } = isLobbyExistingRes.data.isLobbyExisting;
 
       userContext.setLobbyId(lobbyId);
@@ -151,8 +161,17 @@ function App(): JSX.Element {
         window.removeEventListener("beforeunload", () =>
           handleBeforeUnload(lobbyId, userContext.userId)
         );
+    } else if (isLobbyExistingRes.error) {
+      navigate("/");
     }
-  }, [isLobbyExistingRes, userContext.lobbyId, userContext.userId]);
+  }, [
+    addUserToLobbyMutation,
+    handleBeforeUnload,
+    isLobbyExistingRes,
+    userContext,
+    navigate,
+    validatedLobby,
+  ]);
 
   return <Layout></Layout>;
 }
