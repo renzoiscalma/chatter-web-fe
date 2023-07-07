@@ -409,7 +409,6 @@ function Chatter(props: ChatterProps) {
   };
 
   useEffect(() => {
-    console.log("fired");
     if (usernameChangedSub?.data?.usernameChanged) {
       const { id, username } = usernameChangedSub.data?.usernameChanged.data;
       dispatchMessage({
