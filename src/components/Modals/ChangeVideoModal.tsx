@@ -5,6 +5,7 @@ import { KeyboardEvent, useContext, useState } from "react";
 import { validateYtUrl } from "../../util/helpers";
 import { UsrContxt } from "../Chatter/UserContextProvider";
 import OutlinedField from "../InputField/OutlinedField";
+import useInput from "../hooks/useInput";
 import ModalBase from "./ModalBase";
 
 interface ChangeVideoModalProps {
@@ -12,21 +13,38 @@ interface ChangeVideoModalProps {
   handleCloseModal(): void;
 }
 
-interface InputState {
-  input: string;
-  error: boolean;
-}
-
-/**
- *  A generic modal that contains a SINGLE text input, a confirm and a cancel button.
- * does not support validation from backend.
- **/
 function ChangeVideoModal({
   opened,
   handleCloseModal,
 }: ChangeVideoModalProps): JSX.Element {
   const theme = useTheme();
   const userContext = useContext(UsrContxt);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const { error, value: videoUrl, reset: resetInputField } = useInput("");
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
+    if (event.key === "Enter" && videoUrl.value !== "") {
+      handleSubmit();
+    }
+  };
+
+  const handleSubmit = (): void => {
+    setTimeout(() => {
+      if (validateYtUrl(videoUrl.value)) {
+        userContext.setVideoUrl(videoUrl.value);
+        handleCloseModal();
+      } else {
+        error.setError(true);
+      }
+    }, 100);
+    setLoading(true);
+  };
+
+  const onCloseHandler = (): void => {
+    resetInputField();
+    handleCloseModal();
+  };
 
   const confirmButtonSx: SxProps = {
     flexGrow: 1,
@@ -54,44 +72,6 @@ function ChangeVideoModal({
     display: "flex",
   };
 
-  const [values, setValues] = useState<InputState>({
-    input: "",
-    error: false,
-  });
-
-  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
-    if (event.key === "Enter" && values.input !== "") {
-      handleSubmit();
-    }
-  };
-
-  const handleChange =
-    (prop: keyof InputState) =>
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setValues((values) => ({
-        ...values,
-        [prop]: event.target.value,
-        error: false,
-      }));
-    };
-
-  const handleSubmit = (): void => {
-    if (validateYtUrl(values.input)) {
-      userContext.setVideoUrl(values.input);
-      handleCloseModal();
-    } else {
-      setValues((values) => ({ ...values, error: true }));
-    }
-  };
-
-  const onCloseHandler = (): void => {
-    setValues({
-      error: false,
-      input: "",
-    });
-    handleCloseModal();
-  };
-
   return (
     <ModalBase
       open={opened}
@@ -100,14 +80,14 @@ function ChangeVideoModal({
       hasCloseButton
     >
       <OutlinedField
-        error={values.error}
-        helperText={values.error ? "Incorrect entry." : ""}
+        error={error.value}
+        helperText={error.value ? "Incorrect entry." : ""}
         autoComplete="off"
         id="outlined-basic"
         label={"Youtube Url"}
-        onChange={handleChange("input")}
+        onChange={videoUrl.handleChange}
         onKeyDown={handleKeyDown}
-        defaultValue={userContext.videoUrl}
+        defaultValue={""}
         placeholder="https://www.youtube.com/watch?v=4WXs3sKu41I"
       />
       <Box sx={buttonContainer}>
