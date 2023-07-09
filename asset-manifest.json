@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/chatter-web-fe/static/css/main.32a9cfb5.css",
-    "main.js": "/chatter-web-fe/static/js/main.eec43843.js",
+    "main.js": "/chatter-web-fe/static/js/main.4bd9991d.js",
     "static/js/787.0e4d0196.chunk.js": "/chatter-web-fe/static/js/787.0e4d0196.chunk.js",
     "static/media/watching-with-friends.png": "/chatter-web-fe/static/media/watching-with-friends.47675246fd13cb6cffc8.png",
     "static/media/Inter-Regular.ttf": "/chatter-web-fe/static/media/Inter-Regular.e89cb19905e7db5591b0.ttf",
@@ -9,11 +9,11 @@
     "static/media/waves-bg.svg": "/chatter-web-fe/static/media/waves-bg.b53771db2d702634e089199da63d3f0e.svg",
     "index.html": "/chatter-web-fe/index.html",
     "main.32a9cfb5.css.map": "/chatter-web-fe/static/css/main.32a9cfb5.css.map",
-    "main.eec43843.js.map": "/chatter-web-fe/static/js/main.eec43843.js.map",
+    "main.4bd9991d.js.map": "/chatter-web-fe/static/js/main.4bd9991d.js.map",
     "787.0e4d0196.chunk.js.map": "/chatter-web-fe/static/js/787.0e4d0196.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.32a9cfb5.css",
-    "static/js/main.eec43843.js"
+    "static/js/main.4bd9991d.js"
   ]
 }
