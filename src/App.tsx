@@ -83,7 +83,6 @@ function App(): JSX.Element {
 
   useEffect(() => {
     const lobbyId = searchParams.id;
-    console.log(lobbyId);
     if (lobbyId) {
       isLobbyExisting({
         variables: {
@@ -96,7 +95,8 @@ function App(): JSX.Element {
   }, [searchParams, isLobbyExisting, navigate]);
 
   useEffect(() => {
-    if (userContext.lobbyId)
+    // TODO debug this -- i don't need to call this
+    if (userContext.lobbyId && userContext.userId && userContext.videoUrl)
       videoUrlMutation({
         variables: {
           statusInput: {

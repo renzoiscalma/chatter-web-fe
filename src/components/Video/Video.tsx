@@ -161,6 +161,7 @@ function Video(): JSX.Element {
           ...values,
           url,
         }));
+        userContext.setVideoUrl(url);
       }
 
       if (
