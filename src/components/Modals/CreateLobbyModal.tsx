@@ -1,32 +1,25 @@
 import { MutationTuple, useMutation } from "@apollo/client";
-import Button from "@mui/material/Button";
 import { KeyboardEvent, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ADD_USER_TO_LOBBY, CREATE_LOBBY } from "../../queries/App";
 import { validateYtUrl } from "../../util/helpers";
+import FormButton from "../Button/FormButton";
 import { UsrContxt } from "../Chatter/UserContextProvider";
 import Lobby from "../Chatter/interface/Lobby";
 import GenericResponse from "../Chatter/interface/response/GenericResponse";
 import OutlinedField from "../InputField/OutlinedField";
+import useInput from "../hooks/useInput";
 import ModalBase from "./ModalBase";
 
 interface LobbyModalProps {
   opened: boolean;
-  closable: boolean;
   handleCloseModal(): void;
 }
-interface InputState {
-  input: string;
-  error: boolean;
-}
-
-const CreateLobbyModal = ({
-  opened,
-  handleCloseModal,
-  closable,
-}: LobbyModalProps) => {
+const CreateLobbyModal = ({ opened, handleCloseModal }: LobbyModalProps) => {
   const userContext = useContext(UsrContxt);
   const navigate = useNavigate();
+  const { error, value: videoUrl, reset: resetInputField } = useInput("");
+  const [loading, setLoading] = useState<boolean>(false);
 
   const [createLobbyMutation, createLobbyMutationRes]: MutationTuple<
     { createLobby: Lobby },
@@ -35,18 +28,15 @@ const CreateLobbyModal = ({
 
   const createLobby = (videoUrl: string) => {
     // TODO add 1 second delay, loading = true modal should have a spinner inside
-    createLobbyMutation({
-      variables: {
-        videoUrl: videoUrl,
-      },
-    });
-    userContext.setVideoUrl(videoUrl);
+    setTimeout(() => {
+      createLobbyMutation({
+        variables: {
+          videoUrl: videoUrl,
+        },
+      });
+    }, 250);
+    setLoading(true);
   };
-
-  const [values, setValues] = useState<InputState>({
-    input: "",
-    error: false,
-  });
 
   const [addUserToLobbyMutation, addUserToLobbyMutRes]: MutationTuple<
     { addUserToLobby: GenericResponse },
@@ -54,7 +44,11 @@ const CreateLobbyModal = ({
   > = useMutation(ADD_USER_TO_LOBBY);
 
   useEffect(() => {
-    if (createLobbyMutationRes.data) {
+    if (
+      createLobbyMutationRes.data &&
+      createLobbyMutationRes.data.createLobby.id
+    ) {
+      userContext.setVideoUrl(videoUrl.value);
       const { id } = createLobbyMutationRes.data.createLobby;
       userContext.setLobbyId(id);
       handleCloseModal();
@@ -65,37 +59,23 @@ const CreateLobbyModal = ({
           userId: userContext.userId,
         },
       });
+      setLoading(false);
     }
   }, [createLobbyMutationRes.data]);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
-    if (event.key === "Enter" && values.input !== "") {
-      submitHandler();
+    if (event.key === "Enter" && videoUrl.value !== "") {
+      handleSubmit();
     }
   };
 
-  const handleChange =
-    (prop: keyof InputState) =>
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setValues((values) => ({
-        ...values,
-        [prop]: event.target.value,
-        error: false,
-      }));
-    };
-
-  const validateField = (): boolean => {
-    if (!validateYtUrl(values.input)) return false;
-    return true;
-  };
-
-  const submitHandler = (): void => {
-    if (validateField()) createLobby(values.input);
-    else setValues((values) => ({ ...values, error: true }));
+  const handleSubmit = (): void => {
+    if (validateYtUrl(videoUrl.value)) createLobby(videoUrl.value);
+    else error.setError(true);
   };
 
   const onCloseHandler = (_: any, reason: string) => {
-    if ((reason !== "backdropClick" && reason !== "escapeKeyDown") || closable)
+    if (reason !== "backdropClick" && reason !== "escapeKeyDown")
       handleCloseModal();
   };
 
@@ -104,19 +84,23 @@ const CreateLobbyModal = ({
       open={opened}
       onClose={onCloseHandler}
       header="Create your room for watching together!"
-      hasCloseButton={closable}
     >
       <OutlinedField
         placeholder={"https://www.youtube.com/watch?v=4WXs3sKu41I"}
         defaultValue={""}
-        onChange={handleChange("input")}
+        onChange={videoUrl.handleChange}
         onKeyDown={handleKeyDown}
         autoComplete="off"
         label="Video Url"
-        error={values.error}
-        helperText={values.error ? "Incorrect youtube link" : ""}
+        error={error.value}
+        helperText={error.value ? "Incorrect youtube link" : ""}
       />
-      <Button onClick={() => submitHandler()}>Create Lobby!</Button>
+      <FormButton
+        onClick={handleSubmit}
+        disabled={loading || error.value}
+        loading={loading}
+        label={"Create Lobby!"}
+      ></FormButton>
     </ModalBase>
   );
 };

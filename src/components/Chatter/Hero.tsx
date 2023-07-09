@@ -1,19 +1,19 @@
 // <a href="https://www.freepik.com/free-vector/friends-watching-horror-movie_7732623.htm#query=watchingmovie&position=3&from_view=keyword&track=ais#position=3&query=watchingmovie?log-in=google">Image by pch.vector</a> on Freepik
 import { MutationTuple, useMutation } from "@apollo/client";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { SxProps, useTheme } from "@mui/material/styles";
 import { KeyboardEvent, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import HeroImage from "../../assets/watching-with-friends.png";
 import HeroBg from "../../assets/waves-bg.svg";
-import { ADD_USER_TO_LOBBY, CREATE_LOBBY } from "../../queries/App";
+import { CREATE_LOBBY } from "../../queries/App";
 import { validateYtUrl } from "../../util/helpers";
 import OutlinedField from "../InputField/OutlinedField";
 import Navbar from "../Layout/Navbar";
+import useInput from "../hooks/useInput";
 import { UsrContxt } from "./UserContextProvider";
 import Lobby from "./interface/Lobby";
-import GenericResponse from "./interface/response/GenericResponse";
 
 interface InputState {
   input: string;
@@ -25,10 +25,44 @@ function Hero(): JSX.Element {
   const theme = useTheme();
   const navigate = useNavigate();
 
-  const [values, setValues] = useState<InputState>({
-    input: "",
-    error: false,
-  });
+  const { error, value: videoUrl } = useInput("");
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const [createLobbyMutation, createLobbyMutationRes]: MutationTuple<
+    { createLobby: Lobby },
+    { videoUrl: string }
+  > = useMutation(CREATE_LOBBY);
+
+  const createLobby = (videoUrl: string) => {
+    setTimeout(() => {
+      createLobbyMutation({
+        variables: {
+          videoUrl: videoUrl,
+        },
+      });
+    }, 250);
+    setLoading(true);
+  };
+
+  useEffect(() => {
+    if (createLobbyMutationRes.data) {
+      createLobbyMutationRes.reset();
+      const { id } = createLobbyMutationRes.data.createLobby;
+      userContext.setLobbyId(id);
+      navigate("/lobbyId/" + id);
+    }
+  }, [createLobbyMutationRes.data]);
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
+    if (event.key === "Enter" && videoUrl.value !== "") {
+      handleSubmit();
+    }
+  };
+
+  const handleSubmit = (): void => {
+    if (validateYtUrl(videoUrl.value)) createLobby(videoUrl.value);
+    else error.setError(true);
+  };
 
   const contentContainer: SxProps = {
     backgroundColor: theme.appBar.bgColor,
@@ -104,64 +138,11 @@ function Hero(): JSX.Element {
     },
   };
 
-  const [createLobbyMutation, createLobbyMutationRes]: MutationTuple<
-    { createLobby: Lobby },
-    { videoUrl: string }
-  > = useMutation(CREATE_LOBBY);
-
-  const createLobby = (videoUrl: string) => {
-    createLobbyMutation({
-      variables: {
-        videoUrl: videoUrl,
-      },
-    });
-    userContext.setVideoUrl(videoUrl);
-  };
-
-  const [addUserToLobbyMutation, addUserToLobbyMutRes]: MutationTuple<
-    { addUserToLobby: GenericResponse },
-    { lobbyId: string; userId: string }
-  > = useMutation(ADD_USER_TO_LOBBY);
-
-  useEffect(() => {
-    if (createLobbyMutationRes.data) {
-      createLobbyMutationRes.reset();
-      const { id } = createLobbyMutationRes.data.createLobby;
-      userContext.setLobbyId(id);
-      navigate("/lobbyId/" + id);
-      addUserToLobbyMutation({
-        variables: {
-          lobbyId: id,
-          userId: userContext.userId,
-        },
-      });
-    }
-  }, [createLobbyMutationRes.data, addUserToLobbyMutation]);
-
-  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
-    if (event.key === "Enter" && values.input !== "") {
-      submitHandler();
-    }
-  };
-
-  const handleChange =
-    (prop: keyof InputState) =>
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setValues((values) => ({
-        ...values,
-        [prop]: event.target.value,
-        error: false,
-      }));
-    };
-
-  const validateField = (): boolean => {
-    if (!validateYtUrl(values.input)) return false;
-    return true;
-  };
-
-  const submitHandler = (): void => {
-    if (validateField()) createLobby(values.input);
-    else setValues((values) => ({ ...values, error: true }));
+  const loadingSx: SxProps = {
+    width: "24px !important",
+    height: "24px !important",
+    position: "absolute",
+    color: theme.common.text.primary,
   };
 
   return (
@@ -179,17 +160,17 @@ function Hero(): JSX.Element {
             <OutlinedField
               placeholder={"https://www.youtube.com/watch?v=4WXs3sKu41I"}
               defaultValue={""}
-              onChange={handleChange("input")}
+              onChange={videoUrl.handleChange}
               onKeyDown={handleKeyDown}
               autoComplete="off"
               autoFocus
               label="Enter a Youtube Url Here"
-              error={values.error}
-              helperText={values.error ? "Incorrect youtube link" : ""}
+              error={error.value}
+              helperText={error.value ? "Incorrect youtube link" : ""}
               sx={textFieldSx}
             />
-            <Button onClick={() => submitHandler()} sx={buttonSx}>
-              Get Started!
+            <Button onClick={handleSubmit} sx={buttonSx}>
+              {loading ? <CircularProgress sx={loadingSx} /> : "Get Started!"}
             </Button>
           </Grid>
           <Grid item xs={6} md={6} sx={imageContainerSx}>

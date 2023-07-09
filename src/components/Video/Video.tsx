@@ -216,6 +216,7 @@ function Video(): JSX.Element {
           pip: false,
           loop: false,
         }));
+        userContext.setVideoUrl(url);
       }
     }
   }, [videoStatusQueryRes.data]);

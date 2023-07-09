@@ -132,7 +132,6 @@ function Navbar({ mini }: NavbarProps): JSX.Element {
       </Container>
       <CreateLobbyModal
         opened={createLobbyModal}
-        closable={Boolean(userContext.lobbyId)}
         handleCloseModal={() => {
           setCreateLobbyModal(false);
         }}

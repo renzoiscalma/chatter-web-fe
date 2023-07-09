@@ -1,14 +1,14 @@
 import { MutationTuple, useMutation } from "@apollo/client";
-import CheckIcon from "@mui/icons-material/Check";
-import { Button, CircularProgress } from "@mui/material";
 import { SxProps, useTheme } from "@mui/material/styles";
 import { Box } from "@mui/system";
 import { KeyboardEvent, useContext, useEffect, useState } from "react";
 import { CHANGE_USERNAME, VALIDATE_USERNAME } from "../../queries/MessageBar";
+import FormButton from "../Button/FormButton";
 import { UsrContxt } from "../Chatter/UserContextProvider";
 import ChangeUsernameRequest from "../Chatter/interface/requests/ChangeUsernameRequest";
 import GenericResponse from "../Chatter/interface/response/GenericResponse";
 import OutlinedField from "../InputField/OutlinedField";
+import useInput from "../hooks/useInput";
 import ModalBase from "./ModalBase";
 
 interface ChangeUsernameModalProps {
@@ -22,9 +22,9 @@ const ChangeUsernameModal = ({
 }: ChangeUsernameModalProps): JSX.Element => {
   const theme = useTheme();
   const userContext = useContext(UsrContxt);
-  const [error, setError] = useState<boolean>(false);
-  const [username, setUsername] = useState<string>("");
+  const { error, value: username } = useInput("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [successs, setSuccess] = useState<boolean>(false);
 
   const [changeUsernameMutation, changeUsernameMutationProps]: MutationTuple<
     { changeUsername: GenericResponse },
@@ -67,48 +67,32 @@ const ChangeUsernameModal = ({
     display: "flex",
   };
 
-  const loadingSx: SxProps = {
-    width: "24px !important",
-    height: "24px !important",
-    position: "absolute",
-    left: "38px",
-  };
-
-  const successSx: SxProps = {
-    width: "24px !important",
-    height: "24px !important",
-    position: "absolute",
-    left: "38px",
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    username.handleChange(event);
+    setSuccess(false);
   };
 
   const closeHandler = (): void => {
-    usernameValidationMutationProps.reset();
-    changeUsernameMutationProps.reset();
-    setError(false);
+    error.setError(false);
     onClose();
   };
 
-  const submitHandler = (): void => {
+  const handleSubmit = (): void => {
     setTimeout(() => {
       usernameValidationMutataion({
         variables: {
-          username: username,
+          username: username.value,
         },
       });
     }, 250);
     setLoading(true);
+    setSuccess(false);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
-    if (event.key === "Enter" && username !== "") {
-      submitHandler();
+    if (event.key === "Enter" && username.value !== "") {
+      handleSubmit();
     }
-  };
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setUsername(event.target.value);
-    changeUsernameMutationProps.reset();
-    setError(false);
   };
 
   useEffect(() => {
@@ -120,11 +104,11 @@ const ChangeUsernameModal = ({
         changeUsernameMutation({
           variables: {
             userId: userContext.userId,
-            newUsername: username,
+            newUsername: username.value,
           },
         });
       } else {
-        setError(true);
+        error.setError(true);
         setLoading(false);
       }
     }
@@ -135,7 +119,8 @@ const ChangeUsernameModal = ({
       changeUsernameMutationProps.called &&
       changeUsernameMutationProps.data?.changeUsername.success
     ) {
-      userContext.setUsername(username);
+      userContext.setUsername(username.value);
+      setSuccess(true);
       setLoading(false);
     }
   }, [changeUsernameMutationProps.data]);
@@ -153,26 +138,26 @@ const ChangeUsernameModal = ({
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         autoComplete="off"
-        error={error}
-        helperText={error ? "Incorrect entry" : ""}
+        error={error.value}
+        helperText={error.value ? "Incorrect entry" : ""}
         label="Username"
         disabled={loading}
       />
       <Box sx={buttonContainer}>
-        <Button
+        <FormButton
           sx={confirmButtonSx}
-          onClick={submitHandler}
-          disabled={loading || error}
-        >
-          {loading && <CircularProgress sx={loadingSx} />}
-          {changeUsernameMutationProps.data?.changeUsername.success && (
-            <CheckIcon sx={successSx} />
-          )}
-          SUBMIT
-        </Button>
-        <Button sx={cancelButtonSx} onClick={closeHandler} disabled={loading}>
-          CANCEL
-        </Button>
+          onClick={handleSubmit}
+          disabled={loading || error.value}
+          loading={loading}
+          success={successs}
+          label={"SUBMIT"}
+        ></FormButton>
+        <FormButton
+          sx={cancelButtonSx}
+          onClick={closeHandler}
+          disabled={loading}
+          label={"CLOSE"}
+        ></FormButton>
       </Box>
     </ModalBase>
   );
