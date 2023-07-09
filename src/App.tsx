@@ -29,19 +29,16 @@ function App(): JSX.Element {
   const searchParams = useParams();
   const navigate = useNavigate();
 
-  // TODO ADD PROPER TYPES
   const [newUserMutation, newUserMutationRes]: MutationTuple<
     { addNewUser: AddNewUserResponse },
     null
   > = useMutation(ADD_NEW_USER);
 
-  // TODO interface for params
   const [addUserToLobbyMutation]: MutationTuple<
     { addUserToLobby: GenericResponse },
     { lobbyId: string; userId: string }
   > = useMutation(ADD_USER_TO_LOBBY);
 
-  // TODO interface for params
   const [removeUserToLobbyMutation]: MutationTuple<
     { removeUserToLobby: GenericResponse },
     { lobbyId: string; userId: string }
@@ -83,7 +80,6 @@ function App(): JSX.Element {
 
   useEffect(() => {
     const lobbyId = searchParams.id;
-    console.log(lobbyId);
     if (lobbyId) {
       isLobbyExisting({
         variables: {
@@ -94,26 +90,6 @@ function App(): JSX.Element {
       navigate("/");
     }
   }, [searchParams, isLobbyExisting, navigate]);
-
-  useEffect(() => {
-    if (userContext.lobbyId)
-      videoUrlMutation({
-        variables: {
-          statusInput: {
-            url: userContext.videoUrl,
-            lobbyId: userContext.lobbyId,
-            userId: userContext.userId,
-            currTime: 0,
-            status: -1,
-          },
-        },
-      });
-  }, [
-    userContext.videoUrl,
-    userContext.lobbyId,
-    userContext.userId,
-    videoUrlMutation,
-  ]);
 
   useEffect(() => {
     if (newUserMutationRes.data) {

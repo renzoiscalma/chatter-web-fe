@@ -41,7 +41,7 @@ enum PlayerState {
 const defaultPlayerProps: ReactPlayerProps = {
   playing: true,
   controls: true,
-  // muted: true,
+  muted: true,
   playbackRate: 1.0,
   loop: false,
   playsinline: true,
@@ -161,6 +161,7 @@ function Video(): JSX.Element {
           ...values,
           url,
         }));
+        userContext.setVideoUrl(url);
       }
 
       if (
