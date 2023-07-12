@@ -27,7 +27,6 @@ const CreateLobbyModal = ({ opened, handleCloseModal }: LobbyModalProps) => {
   > = useMutation(CREATE_LOBBY);
 
   const createLobby = (videoUrl: string) => {
-    // TODO add 1 second delay, loading = true modal should have a spinner inside
     setTimeout(() => {
       createLobbyMutation({
         variables: {
@@ -74,16 +73,12 @@ const CreateLobbyModal = ({ opened, handleCloseModal }: LobbyModalProps) => {
     else error.setError(true);
   };
 
-  const onCloseHandler = (_: any, reason: string) => {
-    if (reason !== "backdropClick" && reason !== "escapeKeyDown")
-      handleCloseModal();
-  };
-
   return (
     <ModalBase
       open={opened}
-      onClose={onCloseHandler}
+      onClose={handleCloseModal}
       header="Create your room for watching together!"
+      hasCloseButton
     >
       <OutlinedField
         placeholder={"https://www.youtube.com/watch?v=4WXs3sKu41I"}

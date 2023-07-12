@@ -41,7 +41,7 @@ enum PlayerState {
 const defaultPlayerProps: ReactPlayerProps = {
   playing: true,
   controls: true,
-  muted: true,
+  // muted: true,
   playbackRate: 1.0,
   loop: false,
   playsinline: true,
@@ -99,7 +99,8 @@ function Video(): JSX.Element {
       ...values,
       playing: true,
     }));
-    if (!updateFromBERef.current)
+    console.log(updateFromBERef.current, "play");
+    if (!updateFromBERef.current) {
       updateVideo({
         variables: {
           statusInput: {
@@ -110,17 +111,30 @@ function Video(): JSX.Element {
           },
         },
       });
+    }
     setUpdateFromBE(false);
   };
 
+  const onBufferHandler = (): void => {
+    console.log("bufferING");
+    setUpdateFromBE(true);
+  };
+
+  const onBufferEmdHandler = (): void => {
+    console.log("bufferED");
+  };
+
   const onPauseHandler = (param: any): void => {
+    console.log("pausing", param);
     const { lobbyId, userId } = userContext;
     if (!playerRef.current) return;
     setPlayerProps((values) => ({
       ...values,
       playing: false,
     }));
-    if (!updateFromBERef.current)
+    console.log(updateFromBERef.current, "pause");
+
+    if (!updateFromBERef.current) {
       updateVideo({
         variables: {
           statusInput: {
@@ -131,6 +145,7 @@ function Video(): JSX.Element {
           },
         },
       });
+    }
     setUpdateFromBE(false);
   };
 
@@ -174,12 +189,16 @@ function Video(): JSX.Element {
 
       switch (getPlayerState(status)) {
         case PlayerState.PLAYING:
+          console.log("played by someone");
+
           setPlayerProps((values) => ({
             ...values,
             playing: true,
           }));
           break;
         case PlayerState.PAUSED:
+          console.log("paused by someone");
+
           setPlayerProps((values) => ({
             ...values,
             playing: false,
@@ -190,14 +209,6 @@ function Video(): JSX.Element {
       }
     }
   }, [videoChanges.data]);
-
-  useEffect(() => {
-    setPlayerProps((values) => ({
-      ...values,
-      onPlay: onPlayHandler,
-      onPause: onPauseHandler,
-    }));
-  }, [userContext.lobbyId, userContext.userId]); // add these dependencies so we update handlers when the values change
 
   useEffect(() => {
     if (videoStatusQueryRes.data) {
@@ -219,18 +230,30 @@ function Video(): JSX.Element {
         }));
         userContext.setVideoUrl(url);
       }
+      setUpdateFromBE(true);
     }
   }, [videoStatusQueryRes.data]);
 
   useEffect(() => {
-    if (userContext.videoUrl || playerProps.url)
+    if (userContext.videoUrl || playerProps.url) {
       setPlayerProps((val) => ({
         ...val,
+        onPlay: onPlayHandler,
+        onPause: onPauseHandler,
+        onBuffer: onBufferHandler,
+        onBufferEnd: onBufferEmdHandler,
         url: userContext.videoUrl || playerProps.url,
         width: "100%",
         height: videoSize.height - 60,
       }));
-  }, [videoSize, playerProps.url, userContext.videoUrl]);
+    }
+  }, [
+    videoSize,
+    playerProps.url,
+    userContext.videoUrl,
+    userContext.lobbyId,
+    userContext.userId,
+  ]); // add these dependencies so we update handlers when the values change
 
   useEffect(() => {
     if (userContext.lobbyId && userContext.lobbyId !== "NONE") {
