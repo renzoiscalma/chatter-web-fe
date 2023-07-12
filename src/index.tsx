@@ -9,7 +9,7 @@ import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { createClient } from "graphql-ws";
 import ReactDOM from "react-dom/client";
-import { RouterProvider, createHashRouter } from "react-router-dom";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import App from "./App";
 import Hero from "./components/Chatter/Hero";
 import ThemeProvider from "./components/Chatter/ThemeProvider";
@@ -53,17 +53,23 @@ const client = new ApolloClient({
   cache: new InMemoryCache(),
 });
 
-const router = createHashRouter([
+const router = createBrowserRouter(
+  [
+    {
+      index: true,
+      path: "",
+      element: <Hero />,
+      errorElement: <Hero />,
+    },
+    {
+      path: "/lobbyId/:id",
+      element: <App />,
+    },
+  ],
   {
-    index: true,
-    element: <Hero />,
-    errorElement: <Hero />,
-  },
-  {
-    path: "/lobbyId/:id",
-    element: <App />,
-  },
-]);
+    basename: `${process.env.PUBLIC_URL}`,
+  }
+);
 
 // redirect dev to url
 if (process.env.NODE_ENV === "development") {
