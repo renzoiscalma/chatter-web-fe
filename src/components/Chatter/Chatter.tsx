@@ -20,6 +20,7 @@ import {
   USER_LIST_CHANGED_SUBSCRIPTION,
 } from "../../queries/Chatter";
 import { VIDEO_STATUS_SUBSCRIPTION } from "../../queries/Video";
+import sendMessageReducer from "../Reducers/useMessageReducer";
 import MessageBar from "./MessageBar";
 import Messages from "./Messages";
 import Sender from "./Sender";
@@ -27,6 +28,7 @@ import { UsrContxt } from "./UserContextProvider";
 import UserList from "./UserList";
 import Message from "./interface/Message";
 import SendStatus from "./interface/SendStatus";
+import User from "./interface/User";
 import AddMessageResponse from "./interface/response/AddMessageResponse";
 import GenericResponse from "./interface/response/GenericResponse";
 import NewMessageSubResponse from "./interface/response/NewMessageSubResponse";
@@ -45,84 +47,17 @@ interface ChatterProps {
   setChatHidden: Function;
 }
 
-type MESSAGEACTIONTYPE =
-  | { type: "FETCH_ALL"; payload: any } // todo change proper types
-  | { type: SendStatus.FAILED; payload: Message & { localDateSent: string } }
-  | {
-      type: SendStatus.SENDING;
-      payload: Message & { index: number; callback: Function };
-    }
-  | { type: SendStatus.SENT; payload: Message & { localDateSent: string } }
-  | { type: "NEW_MESSAGE"; payload: Message[] }
-  | {
-      type: "USERNAME_CHANGED";
-      payload: { username: string; id: string };
-    };
-
-function sendMessageReducer(
-  state: Message[],
-  action: MESSAGEACTIONTYPE
-): Message[] {
-  let messages = state;
-  switch (action.type) {
-    case "FETCH_ALL":
-      return action.payload.map((message: any): Message => {
-        return {
-          date: new Date(+message.date),
-          message: message.message,
-          sender: message.from.id,
-          senderUsername: message.from.username,
-          to: "Lobby",
-          sendStatus: SendStatus.SENT,
-          sendType: 1,
-        };
-      });
-    case SendStatus.SENDING: {
-      let { to, sender, message, localDateSent, callback } = action.payload;
-      messages.push(action.payload);
-      callback({
-        to,
-        from: sender,
-        message,
-        localDateSent,
-      });
-      return [...messages];
-    }
-    case SendStatus.FAILED:
-    case SendStatus.SENT: {
-      let { localDateSent, sender } = action.payload;
-      messages
-        .filter(
-          (message) =>
-            message.localDateSent === localDateSent && message.sender === sender
-        )
-        .forEach((message) => (message.sendStatus = action.type));
-      return [...messages];
-    }
-    case "NEW_MESSAGE": {
-      // todo sort
-      return [...messages, ...action.payload];
-    }
-    case "USERNAME_CHANGED": {
-      return messages.map((message: Message) => {
-        if (message.sender === action.payload.id)
-          return {
-            ...message,
-            senderUsername: action.payload.username,
-          };
-        return message;
-      });
-    }
-    default:
-      throw new Error();
-  }
-}
-
 function Chatter(props: ChatterProps) {
   const userContext = useContext(UsrContxt);
   const bottomDivRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [messages, dispatchMessage] = useReducer(sendMessageReducer, []);
+  const [currentLobbyUsers, setCurrentLobbyUsers] = useState<Array<User>>([]);
+  const [lobbyUsersListInitialized, setLobbyUsersListInitialized] =
+    useState<boolean>(false);
+  const [showLobbyUsers, setShowLobbyUsers] = useState<boolean>(false);
   const theme = useTheme();
+
   // TODO QUERY RESULT ADD PROPER TYPES
   const [getExistingMsg, getExistingMsgQueryRes]: LazyQueryResultTuple<
     any,
@@ -131,10 +66,10 @@ function Chatter(props: ChatterProps) {
     }
   > = useLazyQuery(GET_MESSAGES_ON_LOBBY);
 
-  const [getCurrUsers]: LazyQueryResultTuple<
+  const [getCurrUsers, getCurrUsersRes]: LazyQueryResultTuple<
     {
       getCurrentUsersOnLobby: GenericResponse & {
-        data: Array<{ username: string; id: string }>;
+        data: Array<User>;
       };
     },
     {
@@ -145,7 +80,7 @@ function Chatter(props: ChatterProps) {
   // unless yung state ng message is contained to itself
   const [sendMessage]: MutationTuple<
     { addMessage: AddMessageResponse },
-    { addMessageInput: Message }
+    { addMessageInput: Partial<Message> }
   > = useMutation(SEND_MESSAGE);
 
   const newMessageSub: SubscriptionResult<
@@ -161,7 +96,7 @@ function Chatter(props: ChatterProps) {
   const userListChangedSub: SubscriptionResult<
     {
       userListChanged: GenericResponse & {
-        data: Array<{ username: string; id: string }>;
+        data: Array<User>;
       };
     },
     { lobbyId: string }
@@ -193,33 +128,17 @@ function Chatter(props: ChatterProps) {
     },
   });
 
-  const chatterContainer: SxProps = {
-    height: "100%",
-    display: "flex",
-    flexDirection: "column",
-    bgcolor: theme.chat.bgColor,
-    minWidth: "inherit",
-  };
-
-  let initialMessages: Message[] = [] as Message[];
-
-  const [messages, dispatchMessage] = useReducer(
-    sendMessageReducer,
-    initialMessages
-  );
-
-  const [initializedLobbyList, setInitializedLobbyList] =
-    useState<boolean>(false);
-  const [showLobbyUsers, setShowLobbyUsers] = useState<boolean>(false);
-  const [currentLobbyUsers, setCurrentLobbyUsers] = useState<
-    Array<{ username: string; id: string }>
-  >([]);
-
-  const messageSendingCallback = async (message: Message) => {
+  const sendMessageQuery = async (message: Message) => {
+    // used asycn calls here because useEffect of send message is bugging on consecutive api calls
     let res: FetchResult<{ addMessage: AddMessageResponse }> =
       await sendMessage({
         variables: {
-          addMessageInput: message,
+          addMessageInput: {
+            to: message.to,
+            from: message.sender,
+            message: message.message,
+            localDateSent: message.localDateSent,
+          },
         },
       });
     if (res.data) {
@@ -244,22 +163,21 @@ function Chatter(props: ChatterProps) {
     }
   };
 
-  const handleSendMessage = (message: string) => {
-    const messageStatusIndex: number = messages.length;
+  const handleSendMessage = (messageStr: string) => {
+    const message: Message = {
+      message: messageStr,
+      sender: userContext.userId,
+      senderUsername: userContext.username,
+      to: userContext.lobbyId,
+      sendStatus: SendStatus.SENDING,
+      localDateSent: new Date().getTime() + "",
+      sendType: 1,
+    };
 
+    sendMessageQuery(message);
     dispatchMessage({
       type: SendStatus.SENDING,
-      payload: {
-        message: message,
-        sender: userContext.userId,
-        senderUsername: userContext.username,
-        to: userContext.lobbyId,
-        sendStatus: SendStatus.SENDING,
-        index: messageStatusIndex,
-        localDateSent: new Date().getTime() + "",
-        callback: messageSendingCallback,
-        sendType: 1,
-      },
+      payload: message,
     });
   };
 
@@ -278,7 +196,7 @@ function Chatter(props: ChatterProps) {
   }, [messages, showLobbyUsers]); // have to disable next line because i don't want to call this useEffect when chatHidden hcanges
 
   useEffect(() => {
-    if (userContext.lobbyId && userContext.lobbyId !== "NONE") {
+    if (userContext.lobbyId) {
       setLoading(true);
       getCurrUsers({
         variables: { lobbyId: userContext.lobbyId },
@@ -297,7 +215,7 @@ function Chatter(props: ChatterProps) {
       });
       setLoading(false);
     }
-  }, [getExistingMsgQueryRes.data?.getMessagesOnLobby?.success]);
+  }, [getExistingMsgQueryRes.data]);
 
   useEffect(() => {
     if (newMessageSub?.data?.messageAdded)
@@ -314,14 +232,8 @@ function Chatter(props: ChatterProps) {
   }, [newMessageSub]);
 
   useEffect(() => {
-    if (userListChangedSub.data?.userListChanged) {
+    if (userListChangedSub.data?.userListChanged && lobbyUsersListInitialized) {
       let { data } = userListChangedSub.data.userListChanged;
-
-      if (!initializedLobbyList) {
-        setInitializedLobbyList(true);
-        setCurrentLobbyUsers(data);
-        return;
-      }
 
       let newUser = data.filter(
         (lobbyUser) =>
@@ -333,78 +245,67 @@ function Chatter(props: ChatterProps) {
         (cLobbyUser) => !data.some((dataUser) => dataUser.id === cLobbyUser.id)
       );
 
-      setCurrentLobbyUsers(data);
-
       if (newUser[0] && newUser[0].username !== userContext.username) {
         dispatchMessageEnteredLobby(newUser[0].username);
       } else if (userLeft[0] && userLeft[0].username !== userContext.username) {
         dispatchMessageLeftLobby(userLeft[0].username);
       }
+
+      setCurrentLobbyUsers(data);
     }
   }, [
     userListChangedSub,
     currentLobbyUsers,
-    initializedLobbyList,
     userContext.username,
+    lobbyUsersListInitialized,
   ]);
+
+  useEffect(() => {
+    if (getCurrUsersRes.data?.getCurrentUsersOnLobby?.data) {
+      setLobbyUsersListInitialized(true);
+      setCurrentLobbyUsers(getCurrUsersRes.data.getCurrentUsersOnLobby.data);
+    }
+  }, [getCurrUsersRes.data]);
 
   useEffect(() => {
     if (videoChanges.data?.videoStatusChanged) {
       let { changedBy, status, url } =
         videoChanges.data?.videoStatusChanged.data;
-      let payload = {
-        message: "",
-        sender: "Admin",
-        to: "Everyone",
-        sendType: -1,
-        localDateSent: new Date().getTime() + "",
-      };
+      let lobbyMessage = "";
       if (url) {
-        payload.message = `${changedBy} has changed the video`;
+        lobbyMessage = `${changedBy} has changed the video`;
       }
       if (status === 1) {
-        payload.message = `${changedBy} has played the video`;
+        lobbyMessage = `${changedBy} has played the video`;
       }
       if (status === 2) {
-        payload.message = `${changedBy} has paused the video`;
+        lobbyMessage = `${changedBy} has paused the video`;
       }
       if (status === 3) {
-        payload.message = `${changedBy} is buffering...`;
+        lobbyMessage = `${changedBy} is buffering...`;
       }
       dispatchMessage({
-        type: "NEW_MESSAGE",
-        payload: [payload],
+        type: "LOBBY_MESSAGE",
+        payload: { message: lobbyMessage },
       });
     }
   }, [videoChanges]);
 
   const dispatchMessageEnteredLobby = (user: string): void => {
     dispatchMessage({
-      type: "NEW_MESSAGE",
-      payload: [
-        {
-          message: `${user} has entered the lobby.`,
-          sender: "Admin",
-          to: "Everyone",
-          sendType: -1,
-          localDateSent: new Date().getTime() + "",
-        },
-      ],
+      type: "LOBBY_MESSAGE",
+      payload: {
+        message: `${user} has entered the lobby.`,
+      },
     });
   };
 
   const dispatchMessageLeftLobby = (user: string): void => {
     dispatchMessage({
-      type: "NEW_MESSAGE",
-      payload: [
-        {
-          message: `${user} has left the lobby.`,
-          sender: "Admin",
-          to: "Everyone",
-          sendType: -1,
-          localDateSent: new Date().getTime() + "",
-        },
-      ],
+      type: "LOBBY_MESSAGE",
+      payload: {
+        message: `${user} has left the lobby.`,
+      },
     });
   };
 
@@ -417,6 +318,14 @@ function Chatter(props: ChatterProps) {
       });
     }
   }, [usernameChangedSub?.data]);
+
+  const chatterContainer: SxProps = {
+    height: "100%",
+    display: "flex",
+    flexDirection: "column",
+    bgcolor: theme.chat.bgColor,
+    minWidth: "inherit",
+  };
 
   return (
     <Box sx={chatterContainer}>

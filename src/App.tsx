@@ -9,7 +9,6 @@ import { useCookies } from "react-cookie";
 import { useNavigate, useParams } from "react-router-dom";
 import { UsrContxt } from "./components/Chatter/UserContextProvider";
 import IsLobbyExistingRequest from "./components/Chatter/interface/requests/IsLobbyExistingRequest";
-import UpdateVideoStatusRequest from "./components/Chatter/interface/requests/UpdateVideoStatusRequest";
 import AddNewUserResponse from "./components/Chatter/interface/response/AddNewUserResponse";
 import GenericResponse from "./components/Chatter/interface/response/GenericResponse";
 import IsLobbyExistingResponse from "./components/Chatter/interface/response/IsLobbyExistingResponse";
@@ -20,7 +19,6 @@ import {
   IS_LOBBY_EXISTING,
   REMOVE_USER_TO_LOBBY,
 } from "./queries/App";
-import { UPDATE_VIDEO } from "./queries/Video";
 
 function App(): JSX.Element {
   const userContext = useContext(UsrContxt);
@@ -48,11 +46,6 @@ function App(): JSX.Element {
     { isLobbyExisting: IsLobbyExistingResponse },
     IsLobbyExistingRequest
   > = useLazyQuery(IS_LOBBY_EXISTING);
-
-  const [videoUrlMutation]: MutationTuple<
-    { updateVideoStatus: GenericResponse },
-    { statusInput: UpdateVideoStatusRequest }
-  > = useMutation(UPDATE_VIDEO);
 
   const handleBeforeUnload = useCallback(
     (lobbyId: string, userId: string): void => {

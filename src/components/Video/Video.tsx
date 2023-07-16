@@ -58,7 +58,7 @@ function Video(): JSX.Element {
 
   // needed to track the correct state on callbacks
   // SOURCE: https://stackoverflow.com/questions/57847594/react-hooks-accessing-up-to-date-state-from-within-a-callback
-  const updateFromBERef = useRef<boolean>();
+  const updateFromBERef = useRef<boolean>(false);
   updateFromBERef.current = updateFromBE;
 
   const videoChanges: SubscriptionResult<
@@ -99,7 +99,6 @@ function Video(): JSX.Element {
       ...values,
       playing: true,
     }));
-    console.log(updateFromBERef.current, "play");
     if (!updateFromBERef.current) {
       updateVideo({
         variables: {
@@ -115,24 +114,13 @@ function Video(): JSX.Element {
     setUpdateFromBE(false);
   };
 
-  const onBufferHandler = (): void => {
-    console.log("bufferING");
-    setUpdateFromBE(true);
-  };
-
-  const onBufferEmdHandler = (): void => {
-    console.log("bufferED");
-  };
-
   const onPauseHandler = (param: any): void => {
-    console.log("pausing", param);
     const { lobbyId, userId } = userContext;
     if (!playerRef.current) return;
     setPlayerProps((values) => ({
       ...values,
       playing: false,
     }));
-    console.log(updateFromBERef.current, "pause");
 
     if (!updateFromBERef.current) {
       updateVideo({
@@ -189,16 +177,12 @@ function Video(): JSX.Element {
 
       switch (getPlayerState(status)) {
         case PlayerState.PLAYING:
-          console.log("played by someone");
-
           setPlayerProps((values) => ({
             ...values,
             playing: true,
           }));
           break;
         case PlayerState.PAUSED:
-          console.log("paused by someone");
-
           setPlayerProps((values) => ({
             ...values,
             playing: false,
@@ -230,7 +214,6 @@ function Video(): JSX.Element {
         }));
         userContext.setVideoUrl(url);
       }
-      setUpdateFromBE(true);
     }
   }, [videoStatusQueryRes.data]);
 
@@ -240,8 +223,6 @@ function Video(): JSX.Element {
         ...val,
         onPlay: onPlayHandler,
         onPause: onPauseHandler,
-        onBuffer: onBufferHandler,
-        onBufferEnd: onBufferEmdHandler,
         url: userContext.videoUrl || playerProps.url,
         width: "100%",
         height: videoSize.height - 60,
@@ -256,7 +237,7 @@ function Video(): JSX.Element {
   ]); // add these dependencies so we update handlers when the values change
 
   useEffect(() => {
-    if (userContext.lobbyId && userContext.lobbyId !== "NONE") {
+    if (userContext.lobbyId) {
       videoStatus({
         variables: {
           lobbyId: userContext.lobbyId,
