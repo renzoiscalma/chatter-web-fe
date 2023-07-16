@@ -2,6 +2,7 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { Box, SxProps, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { StrictMode } from "react";
+import User from "./interface/User";
 
 const lobbyListContainer: SxProps = {
   display: "flex",
@@ -19,7 +20,7 @@ const userContainer: SxProps = {
 };
 
 interface UserList {
-  users: Array<{ username: string; id: string }>;
+  users: Array<User>;
 }
 function UserList({ users }: UserList): JSX.Element {
   const theme = useTheme();

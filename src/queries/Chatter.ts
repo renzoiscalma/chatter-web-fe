@@ -45,6 +45,7 @@ export const GET_CURR_USERS_ON_LOBBY = gql`
       success
       data {
         username
+        id
       }
     }
   }
