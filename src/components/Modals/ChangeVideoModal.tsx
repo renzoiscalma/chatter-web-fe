@@ -1,9 +1,14 @@
+import { MutationTuple, useMutation } from "@apollo/client";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import { SxProps, useTheme } from "@mui/material/styles";
-import { KeyboardEvent, useContext, useState } from "react";
+import { KeyboardEvent, useContext, useEffect, useState } from "react";
+import { UPDATE_VIDEO } from "../../queries/Video";
 import { validateYtUrl } from "../../util/helpers";
+import FormButton from "../Button/FormButton";
 import { UsrContxt } from "../Chatter/UserContextProvider";
+import UpdateVideoStatusRequest from "../Chatter/interface/requests/UpdateVideoStatusRequest";
+import GenericResponse from "../Chatter/interface/response/GenericResponse";
 import OutlinedField from "../InputField/OutlinedField";
 import useInput from "../hooks/useInput";
 import ModalBase from "./ModalBase";
@@ -23,6 +28,11 @@ function ChangeVideoModal({
 
   const { error, value: videoUrl, reset: resetInputField } = useInput("");
 
+  const [videoUrlMutation, videoUrlMutationRes]: MutationTuple<
+    { updateVideoStatus: GenericResponse },
+    { statusInput: UpdateVideoStatusRequest }
+  > = useMutation(UPDATE_VIDEO);
+
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
     if (event.key === "Enter" && videoUrl.value !== "") {
       handleSubmit();
@@ -32,14 +42,32 @@ function ChangeVideoModal({
   const handleSubmit = (): void => {
     setTimeout(() => {
       if (validateYtUrl(videoUrl.value)) {
-        userContext.setVideoUrl(videoUrl.value);
-        handleCloseModal();
+        videoUrlMutation({
+          variables: {
+            statusInput: {
+              userId: userContext.userId,
+              lobbyId: userContext.lobbyId,
+              url: videoUrl.value,
+              currTime: 0,
+              status: 2,
+            },
+          },
+        });
       } else {
         error.setError(true);
       }
     }, 100);
     setLoading(true);
   };
+
+  useEffect(() => {
+    if (videoUrlMutationRes.data?.updateVideoStatus.success) {
+      setLoading(false);
+      userContext.setVideoUrl(videoUrl.value);
+      handleCloseModal();
+      videoUrlMutationRes.reset();
+    }
+  }, [videoUrlMutationRes, handleCloseModal, userContext, videoUrl.value]);
 
   const onCloseHandler = (): void => {
     resetInputField();
@@ -91,9 +119,13 @@ function ChangeVideoModal({
         placeholder="https://www.youtube.com/watch?v=4WXs3sKu41I"
       />
       <Box sx={buttonContainer}>
-        <Button sx={confirmButtonSx} onClick={handleSubmit}>
-          SUBMIT
-        </Button>
+        <FormButton
+          sx={confirmButtonSx}
+          onClick={handleSubmit}
+          disabled={loading || error.value}
+          loading={loading}
+          label="SUBMIT"
+        ></FormButton>
         <Button sx={cancelButtonSx} onClick={onCloseHandler}>
           CANCEL
         </Button>
